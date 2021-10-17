@@ -1,7 +1,7 @@
 {
     "name": "gedmo/doctrine-extensions",
     "type": "library",
-    "description": "Doctrine2 behavioral extensions",
+    "description": "Doctrine2 behavioral extensions. Add treeid",
     "keywords": [
         "behaviors",
         "doctrine2",
