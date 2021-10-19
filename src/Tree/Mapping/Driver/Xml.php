@@ -74,7 +74,12 @@ class Xml extends BaseXml
                 $mapping = $mapping->children(self::GEDMO_NAMESPACE_URI);
 
                 $field = $this->_getAttribute($mappingDoctrine, 'name');
-                if (isset($mapping->{'tree-left'})) {
+                if (isset($mapping->{'tree-id'})) {
+                    if (!$validator->isValidFieldForRoot($meta, $field)) {
+                        throw new InvalidMappingException("Tree id field - [{$field}] type is not valid and must be 'integer' types or 'string' in class - {$meta->name}");
+                    }
+                    $config['tree_id'] = $field;
+                } elseif (isset($mapping->{'tree-left'})) {
                     if (!$validator->isValidField($meta, $field)) {
                         throw new InvalidMappingException("Tree left field - [{$field}] type is not valid and must be 'integer' in class - {$meta->name}");
                     }

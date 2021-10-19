@@ -85,7 +85,12 @@ class Yaml extends File implements Driver
         if (isset($mapping['fields'])) {
             foreach ($mapping['fields'] as $field => $fieldMapping) {
                 if (isset($fieldMapping['gedmo'])) {
-                    if (in_array('treeLeft', $fieldMapping['gedmo'])) {
+                    if (in_array('treeId', $fieldMapping['gedmo'])) {
+                        if (!$validator->isValidFieldForRoot($meta, $field)) {
+                            throw new InvalidMappingException("Tree id field - [{$field}] type is not valid and must be 'integer' types or 'string' in class - {$meta->name}");
+                        }
+                        $config['tree_id'] = $field;
+                    } elseif (in_array('treeLeft', $fieldMapping['gedmo'])) {
                         if (!$validator->isValidField($meta, $field)) {
                             throw new InvalidMappingException("Tree left field - [{$field}] type is not valid and must be 'integer' in class - {$meta->name}");
                         }

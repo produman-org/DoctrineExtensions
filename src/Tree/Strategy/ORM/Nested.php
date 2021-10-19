@@ -293,8 +293,9 @@ class Nested implements Strategy
         $config = $this->listener->getConfiguration($em, $meta->name);
 
         $root = isset($config['root']) ? $wrapped->getPropertyValue($config['root']) : null;
-        $identifierField = $meta->getSingleIdentifierFieldName();
-        $nodeId = $wrapped->getIdentifier();
+
+        $identifierField = $config['tree_id'] ?? $meta->getSingleIdentifierFieldName();
+        $nodeId = isset($config['tree_id']) ? $wrapped->getPropertyValue($config['tree_id']) : $wrapped->getIdentifier();
 
         $left = $wrapped->getPropertyValue($config['left']);
         $right = $wrapped->getPropertyValue($config['right']);
@@ -460,7 +461,7 @@ class Nested implements Strategy
                 $repo = $em->getRepository($config['useObjectClass']);
 
                 $criteria = new Criteria();
-                $criteria->andWhere(Criteria::expr()->notIn($wrapped->getMetadata()->identifier[0], [$wrapped->getIdentifier()]));
+                $criteria->andWhere(Criteria::expr()->notIn($identifierField, [$nodeId]));
                 $criteria->andWhere(Criteria::expr()->eq($config['root'], $node->$method()));
                 $criteria->andWhere(Criteria::expr()->isNull($config['parent']));
                 $criteria->andWhere(Criteria::expr()->eq($config['level'], 0));
@@ -472,7 +473,7 @@ class Nested implements Strategy
             } elseif ($meta->isSingleValuedAssociation($config['root'])) {
                 $newRoot = $node;
             } else {
-                $newRoot = $wrapped->getIdentifier();
+                $newRoot = $nodeId;
             }
         }
 

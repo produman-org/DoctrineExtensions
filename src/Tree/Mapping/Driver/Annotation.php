@@ -24,6 +24,11 @@ class Annotation extends AbstractAnnotationDriver
     public const TREE = 'Gedmo\\Mapping\\Annotation\\Tree';
 
     /**
+     * Annotation to mark field as one which will store id value
+     */
+    public const TREE_ID = 'Gedmo\\Mapping\\Annotation\\TreeId';
+
+    /**
      * Annotation to mark field as one which will store left value
      */
     public const LEFT = 'Gedmo\\Mapping\\Annotation\\TreeLeft';
@@ -118,6 +123,17 @@ class Annotation extends AbstractAnnotationDriver
                 isset($meta->associationMappings[$property->name]['inherited'])
             ) {
                 continue;
+            }
+            // treeId
+            if ($this->reader->getPropertyAnnotation($property, self::TREE_ID)) {
+                $field = $property->getName();
+                if (!$meta->hasField($field)) {
+                    throw new InvalidMappingException("Unable to find 'tree_id' - [{$field}] as mapped property in entity - {$meta->name}");
+                }
+                if (!$validator->isValidFieldForRoot($meta, $field)) {
+                    throw new InvalidMappingException("Tree id field - [{$field}] type is not valid and must be 'integer' types or 'string' in class - {$meta->name}");
+                }
+                $config['tree_id'] = $field;
             }
             // left
             if ($this->reader->getPropertyAnnotation($property, self::LEFT)) {
