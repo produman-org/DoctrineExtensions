@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Blameable;
+namespace Gedmo\Tests\Blameable;
 
-use Blameable\Fixture\Entity\TitledArticle;
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
+use Gedmo\Blameable\BlameableListener;
+use Gedmo\Tests\Blameable\Fixture\Entity\TitledArticle;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Blameable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class ChangeTest extends BaseTestCaseORM
+final class ChangeTest extends BaseTestCaseORM
 {
-    public const FIXTURE = 'Blameable\\Fixture\\Entity\\TitledArticle';
+    public const FIXTURE = TitledArticle::class;
 
     private $listener;
 
@@ -49,7 +50,7 @@ class ChangeTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
         //Changed
-        $this->assertEquals('testuser', $test->getChtitle());
+        static::assertSame('testuser', $test->getChtitle());
 
         $this->listener->setUserValue('otheruser');
 
@@ -59,7 +60,7 @@ class ChangeTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
         //Not Changed
-        $this->assertEquals('testuser', $test->getChtitle());
+        static::assertSame('testuser', $test->getChtitle());
     }
 
     protected function getUsedEntityFixtures()

@@ -1,6 +1,6 @@
 <?php
 
-namespace SoftDeleteable\Fixture\Entity;
+namespace Gedmo\Tests\SoftDeleteable\Fixture\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -69,6 +69,6 @@ class Page
 
     public function addModule(Module $module)
     {
-        $this->module[] = $module;
+        $this->modules[] = $module;
     }
 }

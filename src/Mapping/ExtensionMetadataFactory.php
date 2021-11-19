@@ -10,6 +10,9 @@ use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Gedmo\Mapping\Driver\AnnotationDriverInterface;
+use Gedmo\Mapping\Driver\AttributeAnnotationReader;
+use Gedmo\Mapping\Driver\AttributeDriverInterface;
+use Gedmo\Mapping\Driver\AttributeReader;
 use Gedmo\Mapping\Driver\File as FileDriver;
 
 /**
@@ -69,7 +72,7 @@ class ExtensionMetadataFactory
      *
      * @param object $meta
      *
-     * @return array - the metatada configuration
+     * @return array the metatada configuration
      */
     public function getExtensionMetadata($meta)
     {
@@ -139,10 +142,7 @@ class ExtensionMetadataFactory
     protected function getDriver($omDriver)
     {
         if ($omDriver instanceof DoctrineBundleMappingDriver) {
-            $propertyReflection = (new \ReflectionClass($omDriver))
-                ->getProperty('driver');
-            $propertyReflection->setAccessible(true);
-            $omDriver = $propertyReflection->getValue($omDriver);
+            $omDriver = $omDriver->getDriver();
         }
 
         $driver = null;
@@ -185,7 +185,10 @@ class ExtensionMetadataFactory
                     $driver->setLocator(new DefaultFileLocator($omDriver->getPaths(), $omDriver->getFileExtension()));
                 }
             }
-            if ($driver instanceof AnnotationDriverInterface) {
+
+            if ($driver instanceof AttributeDriverInterface) {
+                $driver->setAnnotationReader(new AttributeAnnotationReader(new AttributeReader(), $this->annotationReader));
+            } elseif ($driver instanceof AnnotationDriverInterface) {
                 $driver->setAnnotationReader($this->annotationReader);
             }
         }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -65,7 +65,7 @@ class MPCategoryWithTrimmedSeparator
         return $this->title;
     }
 
-    public function setParent(MPCategoryWithTrimmedSeparator $parent = null)
+    public function setParent(self $parent = null)
     {
         $this->parentId = $parent;
     }

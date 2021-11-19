@@ -139,7 +139,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @return array - list of Nodes in path
+     * @return array list of Nodes in path
      */
     public function getPath($node)
     {
@@ -162,7 +162,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
         $expr = '';
         $includeNodeExpr = '';
 
-        if (is_object($node) && $node instanceof $meta->name) {
+        if (is_a($node, $meta->getName())) {
             $node = new EntityWrapper($node, $this->_em);
             $nodePath = $node->getPropertyValue($path);
             $expr = $qb->expr()->andx()->add(
@@ -209,7 +209,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
             $qb->orWhere('('.$includeNodeExpr.')');
         }
 
-        $orderByField = is_null($sortByField) ? $alias.'.'.$config['path'] : $alias.'.'.$sortByField;
+        $orderByField = null === $sortByField ? $alias.'.'.$config['path'] : $alias.'.'.$sortByField;
         $orderByDir = 'asc' === $direction ? 'asc' : 'desc';
         $qb->orderBy($orderByField, $orderByDir);
 
@@ -269,7 +269,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
         $nodes = $this->getNodesHierarchyQuery($node, $direct, $options, $includeNode)->getArrayResult();
         usort(
             $nodes,
-            function ($a, $b) use ($path) {
+            static function ($a, $b) use ($path) {
                 return strcmp($a[$path], $b[$path]);
             }
         );

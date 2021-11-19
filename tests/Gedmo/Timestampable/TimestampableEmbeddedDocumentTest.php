@@ -1,11 +1,12 @@
 <?php
 
-namespace Gedmo\Timestampable;
+namespace Gedmo\Tests\Timestampable;
 
 use Doctrine\Common\EventManager;
-use Timestampable\Fixture\Document\Book;
-use Timestampable\Fixture\Document\Tag;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Timestampable\Fixture\Document\Book;
+use Gedmo\Tests\Timestampable\Fixture\Document\Tag;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Timestampable\TimestampableListener;
 
 /**
  * These are tests for Timestampable behavior ODM implementation
@@ -16,9 +17,9 @@ use Tool\BaseTestCaseMongoODM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TimestampableEmbeddedDocumentTest extends BaseTestCaseMongoODM
+final class TimestampableEmbeddedDocumentTest extends BaseTestCaseMongoODM
 {
-    public const BOOK = 'Timestampable\Fixture\Document\Book';
+    public const BOOK = Book::class;
 
     protected function setUp(): void
     {
@@ -50,26 +51,26 @@ class TimestampableEmbeddedDocumentTest extends BaseTestCaseMongoODM
 
         $bookFromRepo = $repo->findOneBy(['title' => 'Cats & Dogs']);
 
-        $this->assertNotNull($bookFromRepo);
+        static::assertNotNull($bookFromRepo);
 
         $date = new \DateTime();
 
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d H:i'),
             $book->getTags()->get(0)->getCreated()->format('Y-m-d H:i')
         );
 
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d H:i'),
             $book->getTags()->get(1)->getCreated()->format('Y-m-d H:i')
         );
 
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d H:i'),
             $book->getTags()->get(0)->getUpdated()->format('Y-m-d H:i')
         );
 
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d H:i'),
             $book->getTags()->get(1)->getUpdated()->format('Y-m-d H:i')
         );

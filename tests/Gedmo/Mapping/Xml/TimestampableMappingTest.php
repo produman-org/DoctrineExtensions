@@ -1,12 +1,14 @@
 <?php
 
-namespace Gedmo\Mapping\Xml;
+namespace Gedmo\Tests\Mapping\Xml;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Gedmo\Tests\Mapping\Fixture\Xml\Status;
+use Gedmo\Tests\Mapping\Fixture\Xml\Timestampable;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 use Gedmo\Timestampable\TimestampableListener;
-use Tool\BaseTestCaseOM;
 
 /**
  * These are mapping extension tests
@@ -17,7 +19,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TimestampableMappingTest extends BaseTestCaseOM
+final class TimestampableMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -29,39 +31,39 @@ class TimestampableMappingTest extends BaseTestCaseOM
      */
     private $timestampable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
         $xmlDriver = new XmlDriver(__DIR__.'/../Driver/Xml');
 
         $chain = new DriverChain();
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
 
         $this->timestampable = new TimestampableListener();
         $this->evm = new EventManager();
         $this->evm->addEventSubscriber($this->timestampable);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Mapping\Fixture\Xml\Timestampable',
-            'Mapping\Fixture\Xml\Status',
+            Timestampable::class,
+            Status::class,
         ], $chain);
     }
 
     public function testTimestampableMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\Timestampable');
+        $meta = $this->em->getClassMetadata(Timestampable::class);
         $config = $this->timestampable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('create', $config);
-        $this->assertEquals('created', $config['create'][0]);
-        $this->assertArrayHasKey('update', $config);
-        $this->assertEquals('updated', $config['update'][0]);
-        $this->assertArrayHasKey('change', $config);
+        static::assertArrayHasKey('create', $config);
+        static::assertSame('created', $config['create'][0]);
+        static::assertArrayHasKey('update', $config);
+        static::assertSame('updated', $config['update'][0]);
+        static::assertArrayHasKey('change', $config);
         $onChange = $config['change'][0];
 
-        $this->assertEquals('published', $onChange['field']);
-        $this->assertEquals('status.title', $onChange['trackedField']);
-        $this->assertEquals('Published', $onChange['value']);
+        static::assertSame('published', $onChange['field']);
+        static::assertSame('status.title', $onChange['trackedField']);
+        static::assertSame('Published', $onChange['value']);
     }
 }

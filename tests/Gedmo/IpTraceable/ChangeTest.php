@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\IpTraceable;
+namespace Gedmo\Tests\IpTraceable;
 
 use Doctrine\Common\EventManager;
-use IpTraceable\Fixture\TitledArticle;
-use Tool\BaseTestCaseORM;
+use Gedmo\IpTraceable\IpTraceableListener;
+use Gedmo\Tests\IpTraceable\Fixture\TitledArticle;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for IpTraceable behavior
@@ -15,10 +16,10 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class ChangeTest extends BaseTestCaseORM
+final class ChangeTest extends BaseTestCaseORM
 {
     public const TEST_IP = '34.234.1.10';
-    public const FIXTURE = 'IpTraceable\\Fixture\\TitledArticle';
+    public const FIXTURE = TitledArticle::class;
 
     protected $listener;
 
@@ -51,7 +52,7 @@ class ChangeTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
         //Changed
-        $this->assertEquals(self::TEST_IP, $test->getChtitle());
+        static::assertSame(self::TEST_IP, $test->getChtitle());
 
         $this->listener->setIpValue('127.0.0.1');
 
@@ -61,7 +62,7 @@ class ChangeTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
         //Not Changed
-        $this->assertEquals(self::TEST_IP, $test->getChtitle());
+        static::assertSame(self::TEST_IP, $test->getChtitle());
     }
 
     protected function getUsedEntityFixtures()

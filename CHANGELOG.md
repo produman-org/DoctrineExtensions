@@ -19,6 +19,33 @@ a release.
 ---
 
 ## [Unreleased]
+### Added
+- Timestampable: Support to use annotations as attributes on PHP >= 8.0.
+
+## [3.3.1] - 2021-11-18
+### Fixed
+- Translatable: Using ORM/ODM attribute mapping and translatable annotations.
+- Tree: Missing support for `tree-path-hash` fields in XML mapping.
+- Tree: Check for affected rows at `ClosureTreeRepository::cleanUpClosure()` and `Closure::updateNode()`.
+- `Gedmo\Mapping\Driver\Xml::_loadMappingFile()` behavior in scenarios where `libxml_disable_entity_loader(true)` was previously
+  called.
+- Loggable: Missing support for `versioned` fields at `attribute-override` in XML mapping.
+
+## [3.3.0] - 2021-11-15
+### Added
+- Support to use Translatable annotations as attributes on PHP >= 8.0.
+
+### Deprecated
+- `Gedmo\Mapping\Driver\File::$_paths` property and `Gedmo\Mapping\Driver\File::setPaths()` method are deprecated and will
+  be removed in version 4.0, as they are not used.
+
+### Fixed
+- Value passed in the `--config` option to `fix-cs` Composer script.
+- Return value for `replaceRelative()` and `replaceInverseRelative()` at `Gedmo\Sluggable\Mapping\Event\Adapter\ODM` if the
+  query result does not implement `Doctrine\ODM\MongoDB\Iterator\Iterator`.
+- Restored compatibility with doctrine/orm >= 2.10.2 (#2272).
+  Since doctrine/orm 2.10, `Doctrine\ORM\UnitOfWork` relies on SPL object IDs instead of hashes, thus we need to adapt our codebase in order to be compatible with this change.
+  As `Doctrine\ODM\MongoDB\UnitOfWork` from doctrine/mongodb-odm still uses `spl_object_hash()`, all `spl_object_hash()` calls were replaced by `spl_object_id()` to make it work with both ORM and ODM managers.
 
 ## [3.2.0] - 2021-10-05
 ### Added

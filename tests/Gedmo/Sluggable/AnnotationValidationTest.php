@@ -1,10 +1,12 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Validate;
-use Tool\BaseTestCaseORM;
+use Gedmo\Exception\InvalidMappingException;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Validate;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -15,16 +17,16 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class AnnotationValidationTest extends BaseTestCaseORM
+final class AnnotationValidationTest extends BaseTestCaseORM
 {
-    public const TARGET = 'Sluggable\\Fixture\\Validate';
+    public const TARGET = Validate::class;
 
     /**
      * @test
      */
     public function shouldFailValidationOnInvalidAnnotation()
     {
-        $this->expectException('Gedmo\Exception\InvalidMappingException');
+        $this->expectException(InvalidMappingException::class);
         $evm = new EventManager();
         $evm->addEventSubscriber(new SluggableListener());
         $this->getMockSqliteEntityManager($evm);
@@ -39,7 +41,7 @@ class AnnotationValidationTest extends BaseTestCaseORM
         $this->em->persist($slug2);
         $this->em->flush();
 
-        $this->assertEquals('my-slug', $slug2->getSlug());
+        static::assertSame('my-slug', $slug2->getSlug());
     }
 
     protected function getUsedEntityFixtures()

@@ -1,14 +1,15 @@
 <?php
 
-namespace Gedmo\Mapping\Xml;
+namespace Gedmo\Tests\Mapping\Xml;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Gedmo\Tests\Mapping\Fixture\Xml\MaterializedPathTree;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 use Gedmo\Tree\TreeListener;
-use Tool\BaseTestCaseOM;
 
 /**
  * These are mapping extension tests
@@ -20,7 +21,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class MaterializedPathTreeMappingTest extends BaseTestCaseOM
+final class MaterializedPathTreeMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -32,7 +33,7 @@ class MaterializedPathTreeMappingTest extends BaseTestCaseOM
      */
     private $tree;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -42,8 +43,8 @@ class MaterializedPathTreeMappingTest extends BaseTestCaseOM
         $xmlDriver = new XmlDriver(__DIR__.'/../Driver/Xml');
 
         $chain = new DriverChain();
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
-        $chain->addDriver($annotationDriver, 'Mapping\Fixture');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
+        $chain->addDriver($annotationDriver, 'Gedmo\Tests\Mapping\Fixture');
         $chain->addDriver($annotationDriver, 'Gedmo\Tree');
 
         $this->tree = new TreeListener();
@@ -51,30 +52,32 @@ class MaterializedPathTreeMappingTest extends BaseTestCaseOM
         $this->evm->addEventSubscriber($this->tree);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Mapping\Fixture\Xml\MaterializedPathTree',
+            MaterializedPathTree::class,
         ], $chain);
     }
 
     public function testTreeMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\MaterializedPathTree');
+        $meta = $this->em->getClassMetadata(MaterializedPathTree::class);
         $config = $this->tree->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('strategy', $config);
-        $this->assertEquals('materializedPath', $config['strategy']);
-        $this->assertArrayHasKey('activate_locking', $config);
-        $this->assertTrue($config['activate_locking']);
-        $this->assertArrayHasKey('locking_timeout', $config);
-        $this->assertEquals(10, $config['locking_timeout']);
-        $this->assertArrayHasKey('level', $config);
-        $this->assertEquals('level', $config['level']);
-        $this->assertArrayHasKey('parent', $config);
-        $this->assertEquals('parent', $config['parent']);
-        $this->assertArrayHasKey('path_source', $config);
-        $this->assertEquals('title', $config['path_source']);
-        $this->assertArrayHasKey('path', $config);
-        $this->assertEquals('path', $config['path']);
-        $this->assertArrayHasKey('lock_time', $config);
-        $this->assertEquals('lockTime', $config['lock_time']);
+        static::assertArrayHasKey('strategy', $config);
+        static::assertSame('materializedPath', $config['strategy']);
+        static::assertArrayHasKey('activate_locking', $config);
+        static::assertTrue($config['activate_locking']);
+        static::assertArrayHasKey('locking_timeout', $config);
+        static::assertSame(10, $config['locking_timeout']);
+        static::assertArrayHasKey('level', $config);
+        static::assertSame('level', $config['level']);
+        static::assertArrayHasKey('parent', $config);
+        static::assertSame('parent', $config['parent']);
+        static::assertArrayHasKey('path_source', $config);
+        static::assertSame('title', $config['path_source']);
+        static::assertArrayHasKey('path', $config);
+        static::assertSame('path', $config['path']);
+        static::assertArrayHasKey('lock_time', $config);
+        static::assertSame('lockTime', $config['lock_time']);
+        static::assertArrayHasKey('path_hash', $config);
+        static::assertSame('pathHash', $config['path_hash']);
     }
 }

@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Article;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Article;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for sluggable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class CustomTransliteratorTest extends BaseTestCaseORM
+final class CustomTransliteratorTest extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Sluggable\\Fixture\\Article';
+    public const ARTICLE = Article::class;
 
     public function testStandardTransliteratorFailsOnChineseCharacters()
     {
@@ -30,7 +31,7 @@ class CustomTransliteratorTest extends BaseTestCaseORM
         $repo = $this->em->getRepository(self::ARTICLE);
 
         $chinese = $repo->findOneBy(['code' => 'zh']);
-        $this->assertEquals('bei-jing-zh', $chinese->getSlug());
+        static::assertSame('bei-jing-zh', $chinese->getSlug());
     }
 
     public function testCanUseCustomTransliterator()
@@ -44,7 +45,7 @@ class CustomTransliteratorTest extends BaseTestCaseORM
         $repo = $this->em->getRepository(self::ARTICLE);
 
         $chinese = $repo->findOneBy(['code' => 'zh']);
-        $this->assertEquals('bei-jing', $chinese->getSlug());
+        static::assertSame('bei-jing', $chinese->getSlug());
     }
 
     private function populate()
@@ -69,7 +70,7 @@ class MySluggableListener extends SluggableListener
 {
     public function __construct()
     {
-        $this->setTransliterator(['\Gedmo\Sluggable\Transliterator', 'transliterate']);
+        $this->setTransliterator([Transliterator::class, 'transliterate']);
     }
 }
 

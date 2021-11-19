@@ -1,10 +1,14 @@
 <?php
 
-namespace Gedmo\SoftDeleteable;
+namespace Gedmo\Tests\SoftDeleteable;
 
 use Doctrine\Common\EventManager;
-use SoftDeleteable\Fixture\Document\User;
-use Tool\BaseTestCaseMongoODM;
+use Doctrine\Common\EventSubscriber;
+use Gedmo\SoftDeleteable\Filter\ODM\SoftDeleteableFilter;
+use Gedmo\SoftDeleteable\SoftDeleteableListener;
+use Gedmo\Tests\SoftDeleteable\Fixture\Document\User;
+use Gedmo\Tests\SoftDeleteable\Fixture\Document\UserTimeAware;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for SoftDeleteable behavior
@@ -17,18 +21,18 @@ use Tool\BaseTestCaseMongoODM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
+final class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE_CLASS = 'SoftDeleteable\Fixture\Document\Article';
-    public const COMMENT_CLASS = 'SoftDeleteable\Fixture\Document\Comment';
-    public const PAGE_CLASS = 'SoftDeleteable\Fixture\Document\Page';
-    public const MEGA_PAGE_CLASS = 'SoftDeleteable\Fixture\Document\MegaPage';
-    public const MODULE_CLASS = 'SoftDeleteable\Fixture\Document\Module';
-    public const OTHER_ARTICLE_CLASS = 'SoftDeleteable\Fixture\Document\OtherArticle';
-    public const OTHER_COMMENT_CLASS = 'SoftDeleteable\Fixture\Document\OtherComment';
-    public const USER_CLASS = 'SoftDeleteable\Fixture\Document\User';
-    public const USER__TIME_AWARE_CLASS = 'SoftDeleteable\Fixture\Document\UserTimeAware';
-    public const MAPPED_SUPERCLASS_CHILD_CLASS = 'SoftDeleteable\Fixture\Document\Child';
+    public const ARTICLE_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\Article';
+    public const COMMENT_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\Comment';
+    public const PAGE_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\Page';
+    public const MEGA_PAGE_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\MegaPage';
+    public const MODULE_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\Module';
+    public const OTHER_ARTICLE_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\OtherArticle';
+    public const OTHER_COMMENT_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\OtherComment';
+    public const USER_CLASS = User::class;
+    public const USER__TIME_AWARE_CLASS = UserTimeAware::class;
+    public const MAPPED_SUPERCLASS_CHILD_CLASS = 'Gedmo\Tests\SoftDeleteable\Fixture\Document\Child';
     public const SOFT_DELETEABLE_FILTER_NAME = 'soft-deleteable';
 
     private $softDeleteableListener;
@@ -41,7 +45,7 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
         $this->softDeleteableListener = new SoftDeleteableListener();
         $evm->addEventSubscriber($this->softDeleteableListener);
         $config = $this->getMockAnnotatedConfig();
-        $config->addFilter(self::SOFT_DELETEABLE_FILTER_NAME, 'Gedmo\SoftDeleteable\Filter\ODM\SoftDeleteableFilter');
+        $config->addFilter(self::SOFT_DELETEABLE_FILTER_NAME, SoftDeleteableFilter::class);
 
         $this->dm = $this->getMockDocumentManager($evm, $config);
         $this->dm->getFilterCollection()->enable(self::SOFT_DELETEABLE_FILTER_NAME);
@@ -64,21 +68,19 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
 
         $user = $repo->findOneBy(['username' => $username]);
 
-        $this->assertNull($user->getDeletedAt());
+        static::assertNull($user->getDeletedAt());
 
         $this->dm->remove($user);
         $this->dm->flush();
 
         $user = $repo->findOneBy(['username' => $username]);
 
-        $this->assertNull($user);
+        static::assertNull($user);
     }
 
     /**
      * Tests the filter by enabling and disabling it between
      * some user persists actions.
-     *
-     * @test
      */
     public function testSoftDeleteableFilter()
     {
@@ -95,18 +97,18 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
 
         $user = $repo->findOneBy(['username' => $username]);
 
-        $this->assertNull($user->getDeletedAt());
+        static::assertNull($user->getDeletedAt());
         $this->dm->remove($user);
         $this->dm->flush();
 
         $user = $repo->findOneBy(['username' => $username]);
 
-        $this->assertNotNull($user->getDeletedAt());
+        static::assertNotNull($user->getDeletedAt());
 
         $filter->enableForDocument(self::USER_CLASS);
 
         $user = $repo->findOneBy(['username' => $username]);
-        $this->assertNull($user);
+        static::assertNull($user);
     }
 
     /**
@@ -146,14 +148,14 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
 
         $user = $repo->findOneBy(['username' => $username]);
 
-        $this->assertNull($user);
+        static::assertNull($user);
         $this->dm->remove($user);
         $this->dm->flush();
     }
 
     public function testPostSoftDeleteEventIsDispatched()
     {
-        $subscriber = $this->getMockBuilder("Doctrine\Common\EventSubscriber")
+        $subscriber = $this->getMockBuilder(EventSubscriber::class)
             ->setMethods([
                 'getSubscribedEvents',
                 'preSoftDelete',
@@ -161,17 +163,17 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
             ])
             ->getMock();
 
-        $subscriber->expects($this->once())
+        $subscriber->expects(static::once())
             ->method('getSubscribedEvents')
-            ->will($this->returnValue([SoftDeleteableListener::PRE_SOFT_DELETE, SoftDeleteableListener::POST_SOFT_DELETE]));
+            ->willReturn([SoftDeleteableListener::PRE_SOFT_DELETE, SoftDeleteableListener::POST_SOFT_DELETE]);
 
-        $subscriber->expects($this->once())
+        $subscriber->expects(static::once())
             ->method('preSoftDelete')
-            ->with($this->anything());
+            ->with(static::anything());
 
-        $subscriber->expects($this->once())
+        $subscriber->expects(static::once())
             ->method('postSoftDelete')
-            ->with($this->anything());
+            ->with(static::anything());
 
         $this->dm->getEventManager()->addEventSubscriber($subscriber);
 
@@ -186,7 +188,7 @@ class SoftDeleteableDocumentTest extends BaseTestCaseMongoODM
 
         $user = $repo->findOneBy(['username' => 'test_user']);
 
-        $this->assertNull($user->getDeletedAt());
+        static::assertNull($user->getDeletedAt());
 
         $this->dm->remove($user);
         $this->dm->flush();

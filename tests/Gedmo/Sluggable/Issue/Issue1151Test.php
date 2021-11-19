@@ -1,17 +1,18 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Issue1151\Article;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Issue1151\Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * Gedmo\Sluggable\Issue1151Test
  *
  * @author Vaidas Lažauskas <vaidas@notrix.lt>
  */
-class Issue1151Test extends BaseTestCaseMongoODM
+final class Issue1151Test extends BaseTestCaseMongoODM
 {
     /**
      * Test if new object with predefined id will be processed by sluggable listener
@@ -24,7 +25,7 @@ class Issue1151Test extends BaseTestCaseMongoODM
         $this->dm->persist($article);
 
         $this->dm->flush();
-        $this->assertEquals('test', $article->getSlug());
+        static::assertSame('test', $article->getSlug());
     }
 
     /**

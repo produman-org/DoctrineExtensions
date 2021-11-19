@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Gedmo\Translatable\Issue;
+namespace Gedmo\Tests\Translatable\Issue;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\Issue2152\EntityWithTranslatableBoolean;
 use Gedmo\Translatable\Entity\Translation;
 use Gedmo\Translatable\TranslatableListener;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\Issue2152\EntityWithTranslatableBoolean;
 
-class Issue2152Test extends BaseTestCaseORM
+final class Issue2152Test extends BaseTestCaseORM
 {
     private const TRANSLATION = Translation::class;
     private const ENTITY = EntityWithTranslatableBoolean::class;
@@ -32,7 +32,7 @@ class Issue2152Test extends BaseTestCaseORM
         $this->translatableListener->setTranslationFallback(true);
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     /**
@@ -73,11 +73,11 @@ class Issue2152Test extends BaseTestCaseORM
 
         //Assert
 
-        $this->assertSame($deTitle, $entityInDe->getTitle());
-        $this->assertEquals($isOperatingInGermany, $entityInDe->isOperating());
+        static::assertSame($deTitle, $entityInDe->getTitle());
+        static::assertSame($isOperatingInGermany, $entityInDe->isOperating());
 
-        $this->assertSame($title, $entityInUa->getTitle(), 'should fallback to default title if null');
-        $this->assertEquals($isOperating, $entityInUa->isOperating(), ' should fallback to default operating if null');
+        static::assertSame($title, $entityInUa->getTitle(), 'should fallback to default title if null');
+        static::assertSame($isOperating, $entityInUa->isOperating(), ' should fallback to default operating if null');
     }
 
     protected function getUsedEntityFixtures()

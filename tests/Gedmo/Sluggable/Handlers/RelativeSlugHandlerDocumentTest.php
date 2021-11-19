@@ -1,11 +1,12 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Document\Handler\Article;
-use Sluggable\Fixture\Document\Handler\RelativeSlug;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Document\Handler\Article;
+use Gedmo\Tests\Sluggable\Fixture\Document\Handler\RelativeSlug;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for sluggable behavior
@@ -16,10 +17,10 @@ use Tool\BaseTestCaseMongoODM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
+final class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Sluggable\\Fixture\\Document\\Handler\\Article';
-    public const SLUG = 'Sluggable\\Fixture\\Document\\Handler\\RelativeSlug';
+    public const ARTICLE = Article::class;
+    public const SLUG = RelativeSlug::class;
 
     protected function setUp(): void
     {
@@ -36,16 +37,16 @@ class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
         $repo = $this->dm->getRepository(self::SLUG);
 
         $thomas = $repo->findOneBy(['title' => 'Thomas']);
-        $this->assertEquals('sport-test/thomas', $thomas->getSlug());
+        static::assertSame('sport-test/thomas', $thomas->getSlug());
 
         $jen = $repo->findOneBy(['title' => 'Jen']);
-        $this->assertEquals('sport-test/jen', $jen->getSlug());
+        static::assertSame('sport-test/jen', $jen->getSlug());
 
         $john = $repo->findOneBy(['title' => 'John']);
-        $this->assertEquals('cars-code/john', $john->getSlug());
+        static::assertSame('cars-code/john', $john->getSlug());
 
         $single = $repo->findOneBy(['title' => 'Single']);
-        $this->assertEquals('single', $single->getSlug());
+        static::assertSame('single', $single->getSlug());
     }
 
     public function testUpdateOperations()
@@ -58,7 +59,7 @@ class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
         $this->dm->persist($thomas);
         $this->dm->flush();
 
-        $this->assertEquals('sport-test/ninja', $thomas->getSlug());
+        static::assertSame('sport-test/ninja', $thomas->getSlug());
 
         $sport = $this->dm->getRepository(self::ARTICLE)->findOneBy(['title' => 'Sport']);
         $sport->setTitle('Martial Arts');
@@ -66,12 +67,12 @@ class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
         $this->dm->persist($sport);
         $this->dm->flush();
 
-        $this->assertEquals('martial-arts-test', $sport->getSlug());
+        static::assertSame('martial-arts-test', $sport->getSlug());
 
-        $this->assertEquals('martial-arts-test/ninja', $thomas->getSlug());
+        static::assertSame('martial-arts-test/ninja', $thomas->getSlug());
 
         $jen = $repo->findOneBy(['title' => 'Jen']);
-        $this->assertEquals('martial-arts-test/jen', $jen->getSlug());
+        static::assertSame('martial-arts-test/jen', $jen->getSlug());
 
         $cars = $this->dm->getRepository(self::ARTICLE)->findOneBy(['title' => 'Cars']);
         $jen->setArticle($cars);
@@ -79,7 +80,7 @@ class RelativeSlugHandlerDocumentTest extends BaseTestCaseMongoODM
         $this->dm->persist($jen);
         $this->dm->flush();
 
-        $this->assertEquals('cars-code/jen', $jen->getSlug());
+        static::assertSame('cars-code/jen', $jen->getSlug());
     }
 
     private function populate()

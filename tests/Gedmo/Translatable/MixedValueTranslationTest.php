@@ -1,11 +1,14 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Types\Type;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\MixedValue;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\MixedValue;
+use Gedmo\Tests\Translatable\Fixture\Type\Custom;
+use Gedmo\Translatable\Entity\Translation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -16,10 +19,10 @@ use Translatable\Fixture\MixedValue;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class MixedValueTranslationTest extends BaseTestCaseORM
+final class MixedValueTranslationTest extends BaseTestCaseORM
 {
-    public const MIXED = 'Translatable\\Fixture\\MixedValue';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const MIXED = MixedValue::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
 
@@ -28,7 +31,7 @@ class MixedValueTranslationTest extends BaseTestCaseORM
         parent::setUp();
 
         if (!Type::hasType('custom')) {
-            Type::addType('custom', 'Translatable\Fixture\Type\Custom');
+            Type::addType('custom', Custom::class);
         }
 
         $evm = new EventManager();
@@ -37,7 +40,7 @@ class MixedValueTranslationTest extends BaseTestCaseORM
         $this->translatableListener->setDefaultLocale('en_us');
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
         $this->populate();
     }
 
@@ -46,9 +49,9 @@ class MixedValueTranslationTest extends BaseTestCaseORM
         $repo = $this->em->getRepository(self::MIXED);
         $mixed = $repo->findOneBy(['id' => 1]);
 
-        $this->assertTrue($mixed->getDate() instanceof \DateTime);
-        $this->assertTrue($mixed->getCust() instanceof \stdClass);
-        $this->assertEquals('en', $mixed->getCust()->test);
+        static::assertInstanceOf(\DateTime::class, $mixed->getDate());
+        static::assertInstanceOf(\stdClass::class, $mixed->getCust());
+        static::assertSame('en', $mixed->getCust()->test);
     }
 
     public function testOtherTranslation()
@@ -70,12 +73,12 @@ class MixedValueTranslationTest extends BaseTestCaseORM
         $transRepo = $this->em->getRepository(self::TRANSLATION);
         $translations = $transRepo->findTranslations($mixed);
 
-        $this->assertCount(1, $translations);
-        $this->assertArrayHasKey('de_de', $translations);
+        static::assertCount(1, $translations);
+        static::assertArrayHasKey('de_de', $translations);
         $cust = unserialize($translations['de_de']['cust']);
 
-        $this->assertTrue($cust instanceof \stdClass);
-        $this->assertEquals('de', $cust->test);
+        static::assertInstanceOf(\stdClass::class, $cust);
+        static::assertSame('de', $cust->test);
     }
 
     protected function getUsedEntityFixtures()

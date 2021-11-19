@@ -1,11 +1,12 @@
 <?php
 
-namespace Gedmo\IpTraceable;
+namespace Gedmo\Tests\IpTraceable;
 
 use Doctrine\Common\EventManager;
-use IpTraceable\Fixture\Document\Article;
-use IpTraceable\Fixture\Document\Type;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\IpTraceable\IpTraceableListener;
+use Gedmo\Tests\IpTraceable\Fixture\Document\Article;
+use Gedmo\Tests\IpTraceable\Fixture\Document\Type;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for IpTraceable behavior ODM implementation
@@ -16,12 +17,12 @@ use Tool\BaseTestCaseMongoODM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class IpTraceableDocumentTest extends BaseTestCaseMongoODM
+final class IpTraceableDocumentTest extends BaseTestCaseMongoODM
 {
     public const TEST_IP = '34.234.1.10';
 
-    public const ARTICLE = 'IpTraceable\Fixture\Document\Article';
-    public const TYPE = 'IpTraceable\Fixture\Document\Type';
+    public const ARTICLE = Article::class;
+    public const TYPE = Type::class;
 
     protected function setUp(): void
     {
@@ -42,8 +43,8 @@ class IpTraceableDocumentTest extends BaseTestCaseMongoODM
         $repo = $this->dm->getRepository(self::ARTICLE);
         $article = $repo->findOneBy(['title' => 'IpTraceable Article']);
 
-        $this->assertEquals(self::TEST_IP, $article->getCreated());
-        $this->assertEquals(self::TEST_IP, $article->getUpdated());
+        static::assertSame(self::TEST_IP, $article->getCreated());
+        static::assertSame(self::TEST_IP, $article->getUpdated());
 
         $published = new Type();
         $published->setIdentifier('published');
@@ -57,8 +58,8 @@ class IpTraceableDocumentTest extends BaseTestCaseMongoODM
 
         $article = $repo->findOneBy(['title' => 'IpTraceable Article']);
 
-        $this->assertEquals(self::TEST_IP, $article->getPublished());
-        $this->assertEquals(self::TEST_IP, $article->getCreated());
+        static::assertSame(self::TEST_IP, $article->getPublished());
+        static::assertSame(self::TEST_IP, $article->getCreated());
     }
 
     public function testForcedValues()
@@ -74,8 +75,8 @@ class IpTraceableDocumentTest extends BaseTestCaseMongoODM
 
         $repo = $this->dm->getRepository(self::ARTICLE);
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals(self::TEST_IP, (string) $sport->getCreated());
-        $this->assertEquals(self::TEST_IP, $sport->getUpdated());
+        static::assertSame(self::TEST_IP, (string) $sport->getCreated());
+        static::assertSame(self::TEST_IP, $sport->getUpdated());
 
         $published = new Type();
         $published->setIdentifier('published');
@@ -89,7 +90,7 @@ class IpTraceableDocumentTest extends BaseTestCaseMongoODM
         $this->dm->clear();
 
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals(self::TEST_IP, $sport->getPublished());
+        static::assertSame(self::TEST_IP, $sport->getPublished());
     }
 
     private function populate()

@@ -9,6 +9,9 @@ use Gedmo\SoftDeleteable\SoftDeleteableListener;
 class SoftDeleteableFilter extends BsonFilter
 {
     protected $listener;
+    /**
+     * @deprecated `BsonFilter::$dm` is a protected property, thus this property is not required
+     */
     protected $documentManager;
     protected $disabled = [];
 
@@ -20,9 +23,10 @@ class SoftDeleteableFilter extends BsonFilter
     public function addFilterCriteria(ClassMetadata $targetEntity): array
     {
         $class = $targetEntity->getName();
-        if (array_key_exists($class, $this->disabled) && true === $this->disabled[$class]) {
+        if (true === ($this->disabled[$class] ?? false)) {
             return [];
-        } elseif (array_key_exists($targetEntity->rootDocumentName, $this->disabled) && true === $this->disabled[$targetEntity->rootDocumentName]) {
+        }
+        if (true === ($this->disabled[$targetEntity->rootDocumentName] ?? false)) {
             return [];
         }
 
@@ -74,13 +78,10 @@ class SoftDeleteableFilter extends BsonFilter
 
     protected function getDocumentManager()
     {
-        if (null === $this->documentManager) {
-            $refl = new \ReflectionProperty('Doctrine\ODM\MongoDB\Query\Filter\BsonFilter', 'dm');
-            $refl->setAccessible(true);
-            $this->documentManager = $refl->getValue($this);
-        }
+        // Remove the following assignment on the next major release.
+        $this->documentManager = $this->dm;
 
-        return $this->documentManager;
+        return $this->dm;
     }
 
     public function disableForDocument($class)

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -67,7 +67,7 @@ class User extends Role
         $num = strlen($set);
         $ret = '';
         for ($i = 0; $i < $length; ++$i) {
-            $ret .= $set[rand(0, $num - 1)];
+            $ret .= $set[mt_rand(0, $num - 1)];
         }
 
         return $ret;

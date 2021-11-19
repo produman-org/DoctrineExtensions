@@ -1,10 +1,13 @@
 <?php
 
-namespace Gedmo\Loggable;
+namespace Gedmo\Tests\Loggable;
 
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use Gedmo\Loggable\Entity\LogEntry;
+use Gedmo\Loggable\LoggableListener;
 use Gedmo\Mapping\ExtensionMetadataFactory;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Category;
 
 /**
  * These are mapping tests for tree extension
@@ -15,12 +18,12 @@ use Gedmo\Mapping\ExtensionMetadataFactory;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class LoggableMappingTest extends \PHPUnit\Framework\TestCase
+final class LoggableMappingTest extends \PHPUnit\Framework\TestCase
 {
-    public const YAML_CATEGORY = 'Mapping\Fixture\Yaml\Category';
+    public const YAML_CATEGORY = Category::class;
     private $em;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache());
@@ -30,7 +33,7 @@ class LoggableMappingTest extends \PHPUnit\Framework\TestCase
         $chainDriverImpl = new DriverChain();
         $chainDriverImpl->addDriver(
             new YamlDriver([__DIR__.'/Driver/Yaml']),
-            'Mapping\Fixture\Yaml'
+            'Gedmo\Tests\Mapping\Fixture\Yaml'
         );
         $config->setMetadataDriverImpl($chainDriverImpl);
 
@@ -52,9 +55,9 @@ class LoggableMappingTest extends \PHPUnit\Framework\TestCase
         $cacheId = ExtensionMetadataFactory::getCacheId(self::YAML_CATEGORY, 'Gedmo\Loggable');
         $config = $this->em->getMetadataFactory()->getCacheDriver()->fetch($cacheId);
 
-        $this->assertArrayHasKey('loggable', $config);
-        $this->assertTrue($config['loggable']);
-        $this->assertArrayHasKey('logEntryClass', $config);
-        $this->assertEquals('Gedmo\\Loggable\\Entity\\LogEntry', $config['logEntryClass']);
+        static::assertArrayHasKey('loggable', $config);
+        static::assertTrue($config['loggable']);
+        static::assertArrayHasKey('logEntryClass', $config);
+        static::assertSame(LogEntry::class, $config['logEntryClass']);
     }
 }

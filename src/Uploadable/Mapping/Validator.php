@@ -6,6 +6,7 @@ use Doctrine\Persistence\Mapping\ClassMetadata;
 use Gedmo\Exception\InvalidMappingException;
 use Gedmo\Exception\UploadableCantWriteException;
 use Gedmo\Exception\UploadableInvalidPathException;
+use Gedmo\Uploadable\FilenameGenerator\FilenameGeneratorInterface;
 
 /**
  * This class is used to validate mapping information
@@ -102,11 +103,7 @@ class Validator
 
     public static function validateFileSizeField(ClassMetadata $meta, $field)
     {
-        if ($meta instanceof \Doctrine\ODM\MongoDB\Mapping\ClassMetadataInfo) {
-            self::validateField($meta, $field, self::UPLOADABLE_FILE_SIZE, self::$validFileSizeTypesODM);
-        } else {
-            self::validateField($meta, $field, self::UPLOADABLE_FILE_SIZE, self::$validFileSizeTypes);
-        }
+        self::validateField($meta, $field, self::UPLOADABLE_FILE_SIZE, self::$validFileSizeTypes);
     }
 
     public static function validateField($meta, $field, $uploadableField, $validFieldTypes)
@@ -198,21 +195,8 @@ class Validator
             case self::FILENAME_GENERATOR_NONE:
                 break;
             default:
-                $ok = false;
-
-                if (class_exists($config['filenameGenerator'])) {
-                    $refl = new \ReflectionClass($config['filenameGenerator']);
-
-                    if ($refl->implementsInterface('Gedmo\Uploadable\FilenameGenerator\FilenameGeneratorInterface')) {
-                        $ok = true;
-                    }
-                }
-
-                if (!$ok) {
-                    $msg = 'Class "%s" needs a valid value for filenameGenerator. It can be: SHA1, ALPHANUMERIC, NONE or ';
-                    $msg .= 'a class implementing FileGeneratorInterface.';
-
-                    throw new InvalidMappingException(sprintf($msg, $meta->name));
+                if (!class_exists($config['filenameGenerator']) || !is_subclass_of($config['filenameGenerator'], FilenameGeneratorInterface::class)) {
+                    throw new InvalidMappingException(sprintf('Class "%s" needs a valid value for filenameGenerator. It can be: SHA1, ALPHANUMERIC, NONE or a class implementing %s.', $meta->name, FilenameGeneratorInterface::class));
                 }
         }
     }

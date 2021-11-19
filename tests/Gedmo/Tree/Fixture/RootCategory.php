@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -76,7 +76,7 @@ class RootCategory
         return $this->title;
     }
 
-    public function setParent(RootCategory $parent = null)
+    public function setParent(self $parent = null)
     {
         $this->parent = $parent;
     }

@@ -64,7 +64,7 @@ class ORM implements AdapterInterface
      */
     public function __call($method, $args)
     {
-        if (is_null($this->args)) {
+        if (null === $this->args) {
             throw new RuntimeException('Event args must be set before calling its methods');
         }
         $method = str_replace('Object', $this->getDomainObjectName(), $method);
@@ -85,7 +85,7 @@ class ORM implements AdapterInterface
      */
     public function getObjectManager()
     {
-        if (!is_null($this->em)) {
+        if (null !== $this->em) {
             return $this->em;
         }
 
@@ -151,29 +151,29 @@ class ORM implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setOriginalObjectProperty($uow, $oid, $property, $value)
+    public function setOriginalObjectProperty($uow, $object, $property, $value)
     {
-        $uow->setOriginalEntityProperty($oid, $property, $value);
+        $uow->setOriginalEntityProperty(spl_object_id($object), $property, $value);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function clearObjectChangeSet($uow, $oid)
+    public function clearObjectChangeSet($uow, $object)
     {
-        $uow->clearEntityChangeSet($oid);
+        $uow->clearEntityChangeSet(spl_object_id($object));
     }
 
     /**
      * Creates a ORM specific LifecycleEventArgs.
      *
-     * @param object                                $document
-     * @param \Doctrine\ODM\MongoDB\DocumentManager $documentManager
+     * @param object                               $document
+     * @param \Doctrine\ORM\EntityManagerInterface $entityManager
      *
-     * @return \Doctrine\ODM\MongoDB\Event\LifecycleEventArgs
+     * @return \Doctrine\ORM\Event\LifecycleEventArgs
      */
-    public function createLifecycleEventArgsInstance($document, $documentManager)
+    public function createLifecycleEventArgsInstance($document, $entityManager)
     {
-        return new LifecycleEventArgs($document, $documentManager);
+        return new LifecycleEventArgs($document, $entityManager);
     }
 }

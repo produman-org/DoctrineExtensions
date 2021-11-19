@@ -1,14 +1,17 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Sluggable\Sluggable;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Comment;
+use Gedmo\Tests\Sluggable\Fixture\Page;
+use Gedmo\Tests\Sluggable\Fixture\TranslatableArticle;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Translatable\Entity\Translation;
 use Gedmo\Translatable\Translatable;
 use Gedmo\Translatable\TranslatableListener;
-use Sluggable\Fixture\Comment;
-use Sluggable\Fixture\Page;
-use Sluggable\Fixture\TranslatableArticle;
-use Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -19,15 +22,15 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TranslatableSlugTest extends BaseTestCaseORM
+final class TranslatableSlugTest extends BaseTestCaseORM
 {
     private $articleId;
     private $translatableListener;
 
-    public const ARTICLE = 'Sluggable\\Fixture\\TranslatableArticle';
-    public const COMMENT = 'Sluggable\\Fixture\\Comment';
-    public const PAGE = 'Sluggable\\Fixture\\Page';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const ARTICLE = TranslatableArticle::class;
+    public const COMMENT = Comment::class;
+    public const PAGE = Page::class;
+    public const TRANSLATION = Translation::class;
 
     protected function setUp(): void
     {
@@ -46,12 +49,12 @@ class TranslatableSlugTest extends BaseTestCaseORM
     public function testSlugAndTranslation()
     {
         $article = $this->em->find(self::ARTICLE, $this->articleId);
-        $this->assertTrue($article instanceof Translatable && $article instanceof Sluggable);
-        $this->assertEquals('the-title-my-code', $article->getSlug());
+        static::assertTrue($article instanceof Translatable && $article instanceof Sluggable);
+        static::assertSame('the-title-my-code', $article->getSlug());
         $repo = $this->em->getRepository(self::TRANSLATION);
 
         $translations = $repo->findTranslations($article);
-        $this->assertCount(0, $translations);
+        static::assertCount(0, $translations);
 
         $article = $this->em->find(self::ARTICLE, $this->articleId);
         $article->setTranslatableLocale('de_DE');
@@ -64,18 +67,18 @@ class TranslatableSlugTest extends BaseTestCaseORM
 
         $repo = $this->em->getRepository(self::TRANSLATION);
         $translations = $repo->findTranslations($article);
-        $this->assertCount(1, $translations);
-        $this->assertArrayHasKey('de_DE', $translations);
-        $this->assertCount(3, $translations['de_DE']);
+        static::assertCount(1, $translations);
+        static::assertArrayHasKey('de_DE', $translations);
+        static::assertCount(3, $translations['de_DE']);
 
-        $this->assertArrayHasKey('code', $translations['de_DE']);
-        $this->assertEquals('code in de', $translations['de_DE']['code']);
+        static::assertArrayHasKey('code', $translations['de_DE']);
+        static::assertSame('code in de', $translations['de_DE']['code']);
 
-        $this->assertArrayHasKey('title', $translations['de_DE']);
-        $this->assertEquals('title in de', $translations['de_DE']['title']);
+        static::assertArrayHasKey('title', $translations['de_DE']);
+        static::assertSame('title in de', $translations['de_DE']['title']);
 
-        $this->assertArrayHasKey('slug', $translations['de_DE']);
-        $this->assertEquals('title-in-de-code-in-de', $translations['de_DE']['slug']);
+        static::assertArrayHasKey('slug', $translations['de_DE']);
+        static::assertSame('title-in-de-code-in-de', $translations['de_DE']['slug']);
     }
 
     public function testConcurrentChanges()
@@ -125,7 +128,7 @@ class TranslatableSlugTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
 
-        $this->assertEquals($page->getSlug(), 'Cont_Test');
+        static::assertSame('Cont_Test', $page->getSlug());
     }
 
     protected function getUsedEntityFixtures()

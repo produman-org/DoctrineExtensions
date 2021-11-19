@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\IpTraceable;
+namespace Gedmo\Tests\IpTraceable;
 
 use Doctrine\Common\EventManager;
-use IpTraceable\Fixture\UsingTrait;
-use Tool\BaseTestCaseORM;
+use Gedmo\IpTraceable\IpTraceableListener;
+use Gedmo\Tests\IpTraceable\Fixture\UsingTrait;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for IpTraceable behavior
@@ -15,10 +16,10 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TraitUsageTest extends BaseTestCaseORM
+final class TraitUsageTest extends BaseTestCaseORM
 {
     public const TEST_IP = '34.234.1.10';
-    public const TARGET = 'IpTraceable\\Fixture\\UsingTrait';
+    public const TARGET = UsingTrait::class;
 
     protected function setUp(): void
     {
@@ -43,8 +44,8 @@ class TraitUsageTest extends BaseTestCaseORM
         $this->em->persist($sport);
         $this->em->flush();
 
-        $this->assertNotNull($sport->getCreatedFromIp());
-        $this->assertNotNull($sport->getUpdatedFromIp());
+        static::assertNotNull($sport->getCreatedFromIp());
+        static::assertNotNull($sport->getUpdatedFromIp());
     }
 
     /**
@@ -53,8 +54,8 @@ class TraitUsageTest extends BaseTestCaseORM
     public function traitMethodShouldReturnObject()
     {
         $sport = new UsingTrait();
-        $this->assertInstanceOf('IpTraceable\Fixture\UsingTrait', $sport->setCreatedFromIp('<192 class="158 3 43"></192>'));
-        $this->assertInstanceOf('IpTraceable\Fixture\UsingTrait', $sport->setUpdatedFromIp('<192 class="158 3 43"></192>'));
+        static::assertInstanceOf(UsingTrait::class, $sport->setCreatedFromIp('<192 class="158 3 43"></192>'));
+        static::assertInstanceOf(UsingTrait::class, $sport->setUpdatedFromIp('<192 class="158 3 43"></192>'));
     }
 
     protected function getUsedEntityFixtures()

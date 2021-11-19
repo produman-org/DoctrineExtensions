@@ -1,6 +1,6 @@
 <?php
 
-namespace Mapping\Fixture\Yaml;
+namespace Gedmo\Tests\Mapping\Fixture\Yaml;
 
 class User
 {
@@ -67,7 +67,7 @@ class User
     /**
      * Set company
      *
-     * @param $company
+     * @param string $company
      */
     public function setCompany($company)
     {

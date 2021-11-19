@@ -80,28 +80,26 @@ class SoftDeleteableWalker extends SqlWalker
     /**
      * Get the currently used SoftDeleteableListener
      *
-     * @throws \Gedmo\Exception\RuntimeException - if listener is not found
+     * @throws \Gedmo\Exception\RuntimeException if listener is not found
      *
      * @return SoftDeleteableListener
      */
     private function getSoftDeleteableListener()
     {
-        if (is_null($this->listener)) {
+        if (null === $this->listener) {
             $em = $this->getEntityManager();
 
             foreach ($em->getEventManager()->getListeners() as $event => $listeners) {
                 foreach ($listeners as $hash => $listener) {
                     if ($listener instanceof SoftDeleteableListener) {
                         $this->listener = $listener;
-                        break;
+
+                        break 2;
                     }
-                }
-                if ($this->listener) {
-                    break;
                 }
             }
 
-            if (is_null($this->listener)) {
+            if (null === $this->listener) {
                 throw new \Gedmo\Exception\RuntimeException('The SoftDeleteable listener could not be found.');
             }
         }

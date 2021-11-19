@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Timestampable;
+namespace Gedmo\Tests\Timestampable;
 
 use Doctrine\Common\EventManager;
-use Timestampable\Fixture\WithoutInterface;
-use Tool\BaseTestCaseORM;
+use Gedmo\Tests\Timestampable\Fixture\WithoutInterface;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Timestampable\TimestampableListener;
 
 /**
  * These are tests for Timestampable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class NoInterfaceTest extends BaseTestCaseORM
+final class NoInterfaceTest extends BaseTestCaseORM
 {
-    public const FIXTURE = 'Timestampable\\Fixture\\WithoutInterface';
+    public const FIXTURE = WithoutInterface::class;
 
     protected function setUp(): void
     {
@@ -29,7 +30,7 @@ class NoInterfaceTest extends BaseTestCaseORM
         $this->getMockSqliteEntityManager($evm);
     }
 
-    public function testTimestampableNoInterface()
+    public function testTimestampableNoInterface(): void
     {
         $test = new WithoutInterface();
         $test->setTitle('Test');
@@ -40,17 +41,17 @@ class NoInterfaceTest extends BaseTestCaseORM
         $this->em->clear();
 
         $test = $this->em->getRepository(self::FIXTURE)->findOneBy(['title' => 'Test']);
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d 00:00:00'),
             $test->getCreated()->format('Y-m-d H:i:s')
         );
-        $this->assertEquals(
+        static::assertSame(
             $date->format('Y-m-d H:i'),
             $test->getUpdated()->format('Y-m-d H:i')
         );
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
             self::FIXTURE,

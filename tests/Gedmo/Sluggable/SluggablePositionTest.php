@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Position;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Position;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SluggablePositionTest extends BaseTestCaseORM
+final class SluggablePositionTest extends BaseTestCaseORM
 {
-    public const POSITION = 'Sluggable\\Fixture\\Position';
+    public const POSITION = Position::class;
 
     protected function setUp(): void
     {
@@ -37,7 +38,7 @@ class SluggablePositionTest extends BaseTestCaseORM
 
         $object = $repo->find(1);
         $slug = $meta->getReflectionProperty('slug')->getValue($object);
-        $this->assertEquals('code-other-title-prop', $slug);
+        static::assertSame('code-other-title-prop', $slug);
     }
 
     protected function getUsedEntityFixtures()

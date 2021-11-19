@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sortable;
+namespace Gedmo\Tests\Sortable;
 
 use Doctrine\Common\EventManager;
-use Sortable\Fixture\Document\Article;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Sortable\SortableListener;
+use Gedmo\Tests\Sortable\Fixture\Document\Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for sortable behavior
@@ -12,9 +13,9 @@ use Tool\BaseTestCaseMongoODM;
  * @author http://github.com/vetalt
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SortableDocumentTest extends BaseTestCaseMongoODM
+final class SortableDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Sortable\\Fixture\\Document\\Article';
+    public const ARTICLE = Article::class;
 
     protected function setUp(): void
     {
@@ -42,7 +43,7 @@ class SortableDocumentTest extends BaseTestCaseMongoODM
         $repo = $this->dm->getRepository(self::ARTICLE);
         for ($i = 0; $i <= 4; ++$i) {
             $article = $repo->findOneBy(['position' => $i]);
-            $this->assertEquals('article'.$i, $article->getTitle());
+            static::assertSame('article'.$i, $article->getTitle());
         }
     }
 
@@ -56,7 +57,7 @@ class SortableDocumentTest extends BaseTestCaseMongoODM
 
         for ($i = 1; $i <= 4; ++$i) {
             $article = $repo->findOneBy(['position' => $i]);
-            $this->assertEquals('article'.($i - 1), $article->getTitle());
+            static::assertSame('article'.($i - 1), $article->getTitle());
         }
     }
 
@@ -70,10 +71,10 @@ class SortableDocumentTest extends BaseTestCaseMongoODM
 
         for ($i = 0; $i <= 3; ++$i) {
             $article = $repo->findOneBy(['position' => $i]);
-            $this->assertEquals('article'.($i + 1), $article->getTitle());
+            static::assertSame('article'.($i + 1), $article->getTitle());
         }
         $article = $repo->findOneBy(['position' => 4]);
-        $this->assertEquals('article0', $article->getTitle());
+        static::assertSame('article0', $article->getTitle());
     }
 
     public function testDeletePositions()
@@ -86,7 +87,7 @@ class SortableDocumentTest extends BaseTestCaseMongoODM
 
         for ($i = 0; $i <= 3; ++$i) {
             $article = $repo->findOneBy(['position' => $i]);
-            $this->assertEquals('article'.($i + 1), $article->getTitle());
+            static::assertSame('article'.($i + 1), $article->getTitle());
         }
     }
 }

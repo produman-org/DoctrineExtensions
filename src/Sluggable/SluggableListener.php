@@ -7,6 +7,7 @@ use Doctrine\Persistence\ObjectManager;
 use Gedmo\Mapping\MappedEventSubscriber;
 use Gedmo\Sluggable\Handler\SlugHandlerWithUniqueCallbackInterface;
 use Gedmo\Sluggable\Mapping\Event\SluggableAdapter;
+use Gedmo\Sluggable\Util\Urlizer;
 use Gedmo\Tool\Wrapper\AbstractWrapper;
 
 /**
@@ -35,14 +36,14 @@ class SluggableListener extends MappedEventSubscriber
      *
      * @var callable
      */
-    private $transliterator = ['Gedmo\Sluggable\Util\Urlizer', 'transliterate'];
+    private $transliterator = [Urlizer::class, 'transliterate'];
 
     /**
      * Urlize callback for slugs
      *
      * @var callable
      */
-    private $urlizer = ['Gedmo\Sluggable\Util\Urlizer', 'urlize'];
+    private $urlizer = [Urlizer::class, 'urlize'];
 
     /**
      * List of inserted slugs for each object class.
@@ -343,9 +344,10 @@ class SluggableListener extends MappedEventSubscriber
                 switch ($options['style']) {
                     case 'camel':
                         $quotedSeparator = preg_quote($options['separator']);
-                        $slug = preg_replace_callback('/^[a-z]|'.$quotedSeparator.'[a-z]/smi', function ($m) {
+                        $slug = preg_replace_callback('/^[a-z]|'.$quotedSeparator.'[a-z]/smi', static function ($m) {
                             return strtoupper($m[0]);
                         }, $slug);
+
                         break;
 
                     case 'lower':
@@ -354,6 +356,7 @@ class SluggableListener extends MappedEventSubscriber
                         } else {
                             $slug = strtolower($slug);
                         }
+
                         break;
 
                     case 'upper':
@@ -362,6 +365,7 @@ class SluggableListener extends MappedEventSubscriber
                         } else {
                             $slug = strtoupper($slug);
                         }
+
                         break;
 
                     default:
@@ -419,7 +423,7 @@ class SluggableListener extends MappedEventSubscriber
      * @param bool   $recursing
      * @param array  $config[$slugField]
      *
-     * @return string - unique slug
+     * @return string unique slug
      */
     private function makeUniqueSlug(SluggableAdapter $ea, $object, $preferredSlug, $recursing = false, $config = [])
     {

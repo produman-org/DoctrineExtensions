@@ -1,10 +1,15 @@
 <?php
 
-namespace Gedmo\Tree;
+namespace Gedmo\Tests\Tree;
 
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Gedmo\Mapping\ExtensionMetadataFactory;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Category;
+use Gedmo\Tests\Mapping\Fixture\Yaml\ClosureCategory;
+use Gedmo\Tests\Mapping\Fixture\Yaml\MaterializedPathCategory;
+use Gedmo\Tests\Tree\Fixture\Closure\CategoryClosure;
+use Gedmo\Tree\TreeListener;
 
 /**
  * These are mapping tests for tree extension
@@ -15,11 +20,11 @@ use Gedmo\Mapping\ExtensionMetadataFactory;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TreeMappingTest extends \PHPUnit\Framework\TestCase
+final class TreeMappingTest extends \PHPUnit\Framework\TestCase
 {
-    public const TEST_YAML_ENTITY_CLASS = 'Mapping\Fixture\Yaml\Category';
-    public const YAML_CLOSURE_CATEGORY = 'Mapping\Fixture\Yaml\ClosureCategory';
-    public const YAML_MATERIALIZED_PATH_CATEGORY = 'Mapping\Fixture\Yaml\MaterializedPathCategory';
+    public const TEST_YAML_ENTITY_CLASS = Category::class;
+    public const YAML_CLOSURE_CATEGORY = ClosureCategory::class;
+    public const YAML_MATERIALIZED_PATH_CATEGORY = MaterializedPathCategory::class;
 
     /**
      * @var \Doctrine\ORM\EntityManager
@@ -31,7 +36,7 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
      */
     private $listener;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache());
@@ -41,11 +46,11 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
         $chainDriverImpl = new DriverChain();
         $chainDriverImpl->addDriver(
             new YamlDriver([__DIR__.'/Driver/Yaml']),
-            'Mapping\Fixture\Yaml'
+            'Gedmo\Tests\Mapping\Fixture\Yaml'
         );
         $chainDriverImpl->addDriver(
             $config->newDefaultAnnotationDriver([], false),
-            'Tree\Fixture'
+            'Gedmo\Tests\Tree\Fixture'
         );
         $chainDriverImpl->addDriver(
             $config->newDefaultAnnotationDriver([], false),
@@ -67,13 +72,13 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
     public function testApcCached()
     {
         $this->em->getClassMetadata(self::YAML_CLOSURE_CATEGORY);
-        $this->em->getClassMetadata('Tree\Fixture\Closure\CategoryClosure');
+        $this->em->getClassMetadata(CategoryClosure::class);
 
         $meta = $this->em->getMetadataFactory()->getCacheDriver()->fetch(
-            'Tree\\Fixture\\Closure\\CategoryClosure$CLASSMETADATA'
+            'Gedmo\\Tests\\Tree\\Fixture\\Closure\\CategoryClosure$CLASSMETADATA'
         );
-        $this->assertTrue($meta->hasAssociation('ancestor'));
-        $this->assertTrue($meta->hasAssociation('descendant'));
+        static::assertTrue($meta->hasAssociation('ancestor'));
+        static::assertTrue($meta->hasAssociation('descendant'));
     }
 
     public function testYamlNestedMapping()
@@ -84,18 +89,18 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
             'Gedmo\Tree'
         );
         $config = $this->em->getMetadataFactory()->getCacheDriver()->fetch($cacheId);
-        $this->assertArrayHasKey('left', $config);
-        $this->assertEquals('left', $config['left']);
-        $this->assertArrayHasKey('right', $config);
-        $this->assertEquals('right', $config['right']);
-        $this->assertArrayHasKey('parent', $config);
-        $this->assertEquals('parent', $config['parent']);
-        $this->assertArrayHasKey('level', $config);
-        $this->assertEquals('level', $config['level']);
-        $this->assertArrayHasKey('root', $config);
-        $this->assertEquals('rooted', $config['root']);
-        $this->assertArrayHasKey('strategy', $config);
-        $this->assertEquals('nested', $config['strategy']);
+        static::assertArrayHasKey('left', $config);
+        static::assertSame('left', $config['left']);
+        static::assertArrayHasKey('right', $config);
+        static::assertSame('right', $config['right']);
+        static::assertArrayHasKey('parent', $config);
+        static::assertSame('parent', $config['parent']);
+        static::assertArrayHasKey('level', $config);
+        static::assertSame('level', $config['level']);
+        static::assertArrayHasKey('root', $config);
+        static::assertSame('rooted', $config['root']);
+        static::assertArrayHasKey('strategy', $config);
+        static::assertSame('nested', $config['strategy']);
     }
 
     public function testYamlClosureMapping()
@@ -104,12 +109,12 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
         $cacheId = ExtensionMetadataFactory::getCacheId(self::YAML_CLOSURE_CATEGORY, 'Gedmo\Tree');
         $config = $this->em->getMetadataFactory()->getCacheDriver()->fetch($cacheId);
 
-        $this->assertArrayHasKey('parent', $config);
-        $this->assertEquals('parent', $config['parent']);
-        $this->assertArrayHasKey('strategy', $config);
-        $this->assertEquals('closure', $config['strategy']);
-        $this->assertArrayHasKey('closure', $config);
-        $this->assertEquals('Tree\\Fixture\\Closure\\CategoryClosure', $config['closure']);
+        static::assertArrayHasKey('parent', $config);
+        static::assertSame('parent', $config['parent']);
+        static::assertArrayHasKey('strategy', $config);
+        static::assertSame('closure', $config['strategy']);
+        static::assertArrayHasKey('closure', $config);
+        static::assertSame(CategoryClosure::class, $config['closure']);
     }
 
     public function testYamlMaterializedPathMapping()
@@ -117,19 +122,19 @@ class TreeMappingTest extends \PHPUnit\Framework\TestCase
         $meta = $this->em->getClassMetadata(self::YAML_MATERIALIZED_PATH_CATEGORY);
         $config = $this->listener->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('strategy', $config);
-        $this->assertEquals('materializedPath', $config['strategy']);
-        $this->assertArrayHasKey('parent', $config);
-        $this->assertEquals('parent', $config['parent']);
-        $this->assertArrayHasKey('activate_locking', $config);
-        $this->assertTrue($config['activate_locking']);
-        $this->assertArrayHasKey('locking_timeout', $config);
-        $this->assertEquals(3, $config['locking_timeout']);
-        $this->assertArrayHasKey('level', $config);
-        $this->assertEquals('level', $config['level']);
-        $this->assertArrayHasKey('path', $config);
-        $this->assertEquals('path', $config['path']);
-        $this->assertArrayHasKey('path_separator', $config);
-        $this->assertEquals(',', $config['path_separator']);
+        static::assertArrayHasKey('strategy', $config);
+        static::assertSame('materializedPath', $config['strategy']);
+        static::assertArrayHasKey('parent', $config);
+        static::assertSame('parent', $config['parent']);
+        static::assertArrayHasKey('activate_locking', $config);
+        static::assertTrue($config['activate_locking']);
+        static::assertArrayHasKey('locking_timeout', $config);
+        static::assertSame(3, $config['locking_timeout']);
+        static::assertArrayHasKey('level', $config);
+        static::assertSame('level', $config['level']);
+        static::assertArrayHasKey('path', $config);
+        static::assertSame('path', $config['path']);
+        static::assertArrayHasKey('path_separator', $config);
+        static::assertSame(',', $config['path_separator']);
     }
 }

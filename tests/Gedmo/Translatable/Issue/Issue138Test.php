@@ -1,11 +1,14 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Query;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\Issue138\Article;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\Issue138\Article;
+use Gedmo\Translatable\Entity\Translation;
+use Gedmo\Translatable\Query\TreeWalker\TranslationWalker;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -16,11 +19,11 @@ use Translatable\Fixture\Issue138\Article;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue138Test extends BaseTestCaseORM
+final class Issue138Test extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Translatable\\Fixture\\Issue138\\Article';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
-    public const TREE_WALKER_TRANSLATION = 'Gedmo\\Translatable\\Query\\TreeWalker\\TranslationWalker';
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = Translation::class;
+    public const TREE_WALKER_TRANSLATION = TranslationWalker::class;
 
     private $translatableListener;
 
@@ -35,7 +38,7 @@ class Issue138Test extends BaseTestCaseORM
         $this->translatableListener->setTranslationFallback(true);
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     public function testIssue138()
@@ -50,8 +53,8 @@ class Issue138Test extends BaseTestCaseORM
         $this->translatableListener->setTranslatableLocale('en_us');
         //die($q->getSQL());
         $result = $q->getArrayResult();
-        $this->assertEquals(1, count($result));
-        $this->assertEquals('Food', $result[0]['title']);
+        static::assertCount(1, $result);
+        static::assertSame('Food', $result[0]['title']);
     }
 
     protected function getUsedEntityFixtures()

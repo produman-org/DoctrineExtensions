@@ -1,6 +1,6 @@
 <?php
 
-namespace Tool;
+namespace Gedmo\Tests\Tool;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ODM\MongoDB\Configuration;
@@ -9,6 +9,7 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Gedmo\Loggable\LoggableListener;
 use Gedmo\Sluggable\SluggableListener;
+use Gedmo\SoftDeleteable\Filter\ODM\SoftDeleteableFilter;
 use Gedmo\SoftDeleteable\SoftDeleteableListener;
 use Gedmo\Timestampable\TimestampableListener;
 use Gedmo\Translatable\TranslatableListener;
@@ -37,8 +38,8 @@ abstract class BaseTestCaseMongoODM extends \PHPUnit\Framework\TestCase
      */
     protected function setUp(): void
     {
-        if (!class_exists('Mongo')) {
-            $this->markTestSkipped('Missing Mongo extension.');
+        if (!extension_loaded('mongodb')) {
+            static::markTestSkipped('Missing Mongo extension.');
         }
     }
 
@@ -55,7 +56,7 @@ abstract class BaseTestCaseMongoODM extends \PHPUnit\Framework\TestCase
             $documentDatabase->drop();
         }
 
-        unset($this->dm);
+        $this->dm = null;
     }
 
     /**
@@ -123,9 +124,9 @@ abstract class BaseTestCaseMongoODM extends \PHPUnit\Framework\TestCase
     protected function getMockAnnotatedConfig(): Configuration
     {
         $config = new Configuration();
-        $config->addFilter('softdeleteable', 'Gedmo\\SoftDeleteable\\Filter\\ODM\\SoftDeleteableFilter');
-        $config->setProxyDir(__DIR__.'/../../temp');
-        $config->setHydratorDir(__DIR__.'/../../temp');
+        $config->addFilter('softdeleteable', SoftDeleteableFilter::class);
+        $config->setProxyDir(TESTS_TEMP_DIR);
+        $config->setHydratorDir(TESTS_TEMP_DIR);
         $config->setProxyNamespace('Proxy');
         $config->setHydratorNamespace('Hydrator');
         $config->setDefaultDB('gedmo_extensions_test');

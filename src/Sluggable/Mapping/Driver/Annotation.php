@@ -2,7 +2,9 @@
 
 namespace Gedmo\Sluggable\Mapping\Driver;
 
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use Gedmo\Exception\InvalidMappingException;
+use Gedmo\Mapping\Annotation\Slug;
 use Gedmo\Mapping\Annotation\SlugHandler;
 use Gedmo\Mapping\Annotation\SlugHandlerOption;
 use Gedmo\Mapping\Driver\AbstractAnnotationDriver;
@@ -22,17 +24,17 @@ class Annotation extends AbstractAnnotationDriver
      * Annotation to identify field as one which holds the slug
      * together with slug options
      */
-    public const SLUG = 'Gedmo\\Mapping\\Annotation\\Slug';
+    public const SLUG = Slug::class;
 
     /**
      * SlugHandler extension annotation
      */
-    public const HANDLER = 'Gedmo\\Mapping\\Annotation\\SlugHandler';
+    public const HANDLER = SlugHandler::class;
 
     /**
      * SlugHandler option annotation
      */
-    public const HANDLER_OPTION = 'Gedmo\\Mapping\\Annotation\\SlugHandlerOption';
+    public const HANDLER_OPTION = SlugHandlerOption::class;
 
     /**
      * List of types which are valid for slug and sluggable fields
@@ -63,7 +65,7 @@ class Annotation extends AbstractAnnotationDriver
             ) {
                 continue;
             }
-            $config = $this->retrieveSlug($meta, $config, $property, '');
+            $config = $this->retrieveSlug($meta, $config, $property);
         }
 
         // Embedded entity
@@ -80,15 +82,11 @@ class Annotation extends AbstractAnnotationDriver
     }
 
     /**
-     * @param $meta
-     * @param $property
-     * @param $fieldNamePrefix
-     *
-     * @return array
+     * @return array<string, array<string, mixed>>
      */
-    private function retrieveSlug($meta, array &$config, $property, $fieldNamePrefix)
+    private function retrieveSlug(ClassMetadata $meta, array &$config, \ReflectionProperty $property, ?string $fieldNamePrefix = null): array
     {
-        $fieldName = $fieldNamePrefix ? ($fieldNamePrefix.'.'.$property->getName()) : $property->getName();
+        $fieldName = null !== $fieldNamePrefix ? ($fieldNamePrefix.'.'.$property->getName()) : $property->getName();
         // slug property
         if ($slug = $this->reader->getPropertyAnnotation($property, self::SLUG)) {
             if (!$meta->hasField($fieldName)) {
@@ -126,7 +124,7 @@ class Annotation extends AbstractAnnotationDriver
                 throw new InvalidMappingException("Slug must contain at least one field for slug generation in class - {$meta->name}");
             }
             foreach ($slug->fields as $slugField) {
-                $slugFieldWithPrefix = $fieldNamePrefix ? ($fieldNamePrefix.'.'.$slugField) : $slugField;
+                $slugFieldWithPrefix = null !== $fieldNamePrefix ? ($fieldNamePrefix.'.'.$slugField) : $slugField;
                 if (!$meta->hasField($slugFieldWithPrefix)) {
                     throw new InvalidMappingException("Unable to find slug [{$slugFieldWithPrefix}] as mapped property in entity - {$meta->name}");
                 }
@@ -151,7 +149,7 @@ class Annotation extends AbstractAnnotationDriver
             }
             $sluggableFields = [];
             foreach ($slug->fields as $field) {
-                $sluggableFields[] = $fieldNamePrefix ? ($fieldNamePrefix.'.'.$field) : $field;
+                $sluggableFields[] = null !== $fieldNamePrefix ? ($fieldNamePrefix.'.'.$field) : $field;
             }
 
             // set all options

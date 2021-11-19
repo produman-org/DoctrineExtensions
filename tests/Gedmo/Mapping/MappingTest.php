@@ -1,8 +1,9 @@
 <?php
 
-namespace Gedmo\Mapping;
+namespace Gedmo\Tests\Mapping;
 
-use Tree\Fixture\BehavioralCategory;
+use Gedmo\Tests\Tree\Fixture\BehavioralCategory;
+use Gedmo\Translatable\Entity\Translation;
 
 /**
  * These are mapping extension tests
@@ -13,15 +14,15 @@ use Tree\Fixture\BehavioralCategory;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class MappingTest extends \PHPUnit\Framework\TestCase
+final class MappingTest extends \PHPUnit\Framework\TestCase
 {
-    public const TEST_ENTITY_CATEGORY = "Tree\Fixture\BehavioralCategory";
-    public const TEST_ENTITY_TRANSLATION = "Gedmo\Translatable\Entity\Translation";
+    public const TEST_ENTITY_CATEGORY = BehavioralCategory::class;
+    public const TEST_ENTITY_TRANSLATION = Translation::class;
 
     private $em;
     private $timestampable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setProxyDir(TESTS_TEMP_DIR);
@@ -61,6 +62,6 @@ class MappingTest extends \PHPUnit\Framework\TestCase
             $this->em,
             self::TEST_ENTITY_CATEGORY
         );
-        $this->assertCount(0, $conf);
+        static::assertCount(0, $conf);
     }
 }

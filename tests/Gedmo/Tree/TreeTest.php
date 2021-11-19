@@ -1,11 +1,13 @@
 <?php
 
-namespace Gedmo\Tree;
+namespace Gedmo\Tests\Tree;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
-use Tree\Fixture\Category;
-use Tree\Fixture\CategoryUuid;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Tree\Fixture\Category;
+use Gedmo\Tests\Tree\Fixture\CategoryUuid;
+use Gedmo\Tree\Node;
+use Gedmo\Tree\TreeListener;
 
 /**
  * These are tests for Tree behavior
@@ -16,10 +18,10 @@ use Tree\Fixture\CategoryUuid;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TreeTest extends BaseTestCaseORM
+final class TreeTest extends BaseTestCaseORM
 {
-    public const CATEGORY = 'Tree\\Fixture\\Category';
-    public const CATEGORY_UUID = 'Tree\\Fixture\\CategoryUuid';
+    public const CATEGORY = Category::class;
+    public const CATEGORY_UUID = CategoryUuid::class;
 
     protected function setUp(): void
     {
@@ -37,7 +39,7 @@ class TreeTest extends BaseTestCaseORM
 
         $root = new Category();
         $root->setTitle('Root');
-        $this->assertTrue($root instanceof Node);
+        static::assertInstanceOf(Node::class, $root);
 
         $this->em->persist($root);
         $this->em->flush();
@@ -47,8 +49,8 @@ class TreeTest extends BaseTestCaseORM
         $left = $meta->getReflectionProperty('lft')->getValue($root);
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(2, $right);
+        static::assertSame(1, $left);
+        static::assertSame(2, $right);
 
         $child = new Category();
         $child->setTitle('child');
@@ -63,18 +65,18 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
         $level = $meta->getReflectionProperty('level')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(4, $right);
-        $this->assertEquals(0, $level);
+        static::assertSame(1, $left);
+        static::assertSame(4, $right);
+        static::assertSame(0, $level);
 
         $child = $this->em->getRepository(self::CATEGORY)->find(2);
         $left = $meta->getReflectionProperty('lft')->getValue($child);
         $right = $meta->getReflectionProperty('rgt')->getValue($child);
         $level = $meta->getReflectionProperty('level')->getValue($child);
 
-        $this->assertEquals(2, $left);
-        $this->assertEquals(3, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(2, $left);
+        static::assertSame(3, $right);
+        static::assertSame(1, $level);
 
         $child2 = new Category();
         $child2->setTitle('child2');
@@ -89,18 +91,18 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
         $level = $meta->getReflectionProperty('level')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(6, $right);
-        $this->assertEquals(0, $level);
+        static::assertSame(1, $left);
+        static::assertSame(6, $right);
+        static::assertSame(0, $level);
 
         $child2 = $this->em->getRepository(self::CATEGORY)->find(3);
         $left = $meta->getReflectionProperty('lft')->getValue($child2);
         $right = $meta->getReflectionProperty('rgt')->getValue($child2);
         $level = $meta->getReflectionProperty('level')->getValue($child2);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
 
         $childsChild = new Category();
         $childsChild->setTitle('childs2_child');
@@ -115,13 +117,13 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($child2);
         $level = $meta->getReflectionProperty('level')->getValue($child2);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(7, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(7, $right);
+        static::assertSame(1, $level);
 
         $level = $meta->getReflectionProperty('level')->getValue($childsChild);
 
-        $this->assertEquals(2, $level);
+        static::assertSame(2, $level);
 
         // test updates to nodes, parent changes
 
@@ -139,9 +141,9 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($child);
         $level = $meta->getReflectionProperty('level')->getValue($child);
 
-        $this->assertEquals(2, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(2, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
 
         // test deletion
 
@@ -153,8 +155,8 @@ class TreeTest extends BaseTestCaseORM
         $left = $meta->getReflectionProperty('lft')->getValue($root);
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(4, $right);
+        static::assertSame(1, $left);
+        static::assertSame(4, $right);
 
         // test persisting in any time
         $yetAnotherChild = new Category();
@@ -169,9 +171,9 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($yetAnotherChild);
         $level = $meta->getReflectionProperty('level')->getValue($yetAnotherChild);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
     }
 
     public function testIssue33()
@@ -212,14 +214,14 @@ class TreeTest extends BaseTestCaseORM
         $subNode = $repo->findOneBy(['title' => 'sub-node']);
         $left = $meta->getReflectionProperty('lft')->getValue($subNode);
         $right = $meta->getReflectionProperty('rgt')->getValue($subNode);
-        $this->assertEquals(3, $left);
-        $this->assertEquals(4, $right);
+        static::assertSame(3, $left);
+        static::assertSame(4, $right);
 
         $node1 = $repo->findOneBy(['title' => 'node1']);
         $left = $meta->getReflectionProperty('lft')->getValue($node1);
         $right = $meta->getReflectionProperty('rgt')->getValue($node1);
-        $this->assertEquals(2, $left);
-        $this->assertEquals(5, $right);
+        static::assertSame(2, $left);
+        static::assertSame(5, $right);
     }
 
     public function testIssue273()
@@ -228,7 +230,7 @@ class TreeTest extends BaseTestCaseORM
 
         $root = new CategoryUuid();
         $root->setTitle('Root');
-        $this->assertTrue($root instanceof Node);
+        static::assertInstanceOf(Node::class, $root);
 
         $this->em->persist($root);
         $rootId = $root->getId();
@@ -239,8 +241,8 @@ class TreeTest extends BaseTestCaseORM
         $left = $meta->getReflectionProperty('lft')->getValue($root);
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(2, $right);
+        static::assertSame(1, $left);
+        static::assertSame(2, $right);
 
         $child = new CategoryUuid();
         $child->setTitle('child');
@@ -256,18 +258,18 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
         $level = $meta->getReflectionProperty('level')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(4, $right);
-        $this->assertEquals(0, $level);
+        static::assertSame(1, $left);
+        static::assertSame(4, $right);
+        static::assertSame(0, $level);
 
         $child = $this->em->getRepository(self::CATEGORY_UUID)->find($childId);
         $left = $meta->getReflectionProperty('lft')->getValue($child);
         $right = $meta->getReflectionProperty('rgt')->getValue($child);
         $level = $meta->getReflectionProperty('level')->getValue($child);
 
-        $this->assertEquals(2, $left);
-        $this->assertEquals(3, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(2, $left);
+        static::assertSame(3, $right);
+        static::assertSame(1, $level);
 
         $child2 = new CategoryUuid();
         $child2->setTitle('child2');
@@ -283,18 +285,18 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
         $level = $meta->getReflectionProperty('level')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(6, $right);
-        $this->assertEquals(0, $level);
+        static::assertSame(1, $left);
+        static::assertSame(6, $right);
+        static::assertSame(0, $level);
 
         $child2 = $this->em->getRepository(self::CATEGORY_UUID)->find($child2Id);
         $left = $meta->getReflectionProperty('lft')->getValue($child2);
         $right = $meta->getReflectionProperty('rgt')->getValue($child2);
         $level = $meta->getReflectionProperty('level')->getValue($child2);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
 
         $childsChild = new CategoryUuid();
         $childsChild->setTitle('childs2_child');
@@ -310,13 +312,13 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($child2);
         $level = $meta->getReflectionProperty('level')->getValue($child2);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(7, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(7, $right);
+        static::assertSame(1, $level);
 
         $level = $meta->getReflectionProperty('level')->getValue($childsChild);
 
-        $this->assertEquals(2, $level);
+        static::assertSame(2, $level);
 
         // test updates to nodes, parent changes
 
@@ -334,9 +336,9 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($child);
         $level = $meta->getReflectionProperty('level')->getValue($child);
 
-        $this->assertEquals(2, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(2, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
 
         // test deletion
 
@@ -348,8 +350,8 @@ class TreeTest extends BaseTestCaseORM
         $left = $meta->getReflectionProperty('lft')->getValue($root);
         $right = $meta->getReflectionProperty('rgt')->getValue($root);
 
-        $this->assertEquals(1, $left);
-        $this->assertEquals(4, $right);
+        static::assertSame(1, $left);
+        static::assertSame(4, $right);
 
         // test persisting in any time
         $yetAnotherChild = new CategoryUuid();
@@ -364,9 +366,9 @@ class TreeTest extends BaseTestCaseORM
         $right = $meta->getReflectionProperty('rgt')->getValue($yetAnotherChild);
         $level = $meta->getReflectionProperty('level')->getValue($yetAnotherChild);
 
-        $this->assertEquals(4, $left);
-        $this->assertEquals(5, $right);
-        $this->assertEquals(1, $level);
+        static::assertSame(4, $left);
+        static::assertSame(5, $right);
+        static::assertSame(1, $level);
     }
 
     protected function getUsedEntityFixtures()

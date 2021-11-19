@@ -80,7 +80,7 @@ class InversedRelativeSlugHandler implements SlugHandlerInterface
         $this->om = $ea->getObjectManager();
         $isInsert = $this->om->getUnitOfWork()->isScheduledForInsert($object);
         if (!$isInsert) {
-            $options = $config['handlers'][get_called_class()];
+            $options = $config['handlers'][static::class];
             $wrapped = AbstractWrapper::wrap($object, $this->om);
             $oldSlug = $wrapped->getPropertyValue($config['slug']);
             $mappedByConfig = $this->sluggable->getConfiguration(
@@ -109,12 +109,12 @@ class InversedRelativeSlugHandler implements SlugHandlerInterface
                         if (property_exists($object, '__isInitialized__') && !$object->__isInitialized__) {
                             continue;
                         }
-                        $oid = spl_object_hash($object);
+
                         $objectSlug = $meta->getReflectionProperty($mappedByConfig['slug'])->getValue($object);
                         if (preg_match("@^{$oldSlug}@smi", $objectSlug)) {
                             $objectSlug = str_replace($oldSlug, $slug, $objectSlug);
                             $meta->getReflectionProperty($mappedByConfig['slug'])->setValue($object, $objectSlug);
-                            $ea->setOriginalObjectProperty($uow, $oid, $mappedByConfig['slug'], $objectSlug);
+                            $ea->setOriginalObjectProperty($uow, $object, $mappedByConfig['slug'], $objectSlug);
                         }
                     }
                 }

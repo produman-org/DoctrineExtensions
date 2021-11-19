@@ -2,7 +2,6 @@
 
 namespace Gedmo\Sluggable\Mapping\Event\Adapter;
 
-use Doctrine\MongoDB\Cursor;
 use Doctrine\ODM\MongoDB\Iterator\Iterator;
 use Gedmo\Mapping\Event\Adapter\ODM as BaseAdapterODM;
 use Gedmo\Sluggable\Mapping\Event\SluggableAdapter;
@@ -46,7 +45,7 @@ final class ODM extends BaseAdapterODM implements SluggableAdapter
         $q->setHydrate(false);
 
         $result = $q->execute();
-        if ($result instanceof Cursor || $result instanceof Iterator) {
+        if ($result instanceof Iterator) {
             $result = $result->toArray();
         }
 
@@ -73,20 +72,25 @@ final class ODM extends BaseAdapterODM implements SluggableAdapter
         ;
         $q->setHydrate(false);
         $result = $q->execute();
-        if ($result instanceof Cursor) {
-            $result = $result->toArray();
-            foreach ($result as $targetObject) {
-                $slug = preg_replace("@^{$target}@smi", $replacement.$config['pathSeparator'], $targetObject[$config['slug']]);
-                $dm
-                    ->createQueryBuilder()
-                    ->update($config['useObjectClass'])
-                    ->field($config['slug'])->set($slug)
-                    ->field($meta->identifier)->equals($targetObject['_id'])
-                    ->getQuery()
-                    ->execute()
-                ;
-            }
+
+        if (!$result instanceof Iterator) {
+            return 0;
         }
+
+        $result = $result->toArray();
+        foreach ($result as $targetObject) {
+            $slug = preg_replace("@^{$target}@smi", $replacement.$config['pathSeparator'], $targetObject[$config['slug']]);
+            $dm
+                ->createQueryBuilder()
+                ->updateMany($config['useObjectClass'])
+                ->field($config['slug'])->set($slug)
+                ->field($meta->identifier)->equals($targetObject['_id'])
+                ->getQuery()
+                ->execute()
+            ;
+        }
+
+        return count($result);
     }
 
     /**
@@ -107,19 +111,24 @@ final class ODM extends BaseAdapterODM implements SluggableAdapter
         ;
         $q->setHydrate(false);
         $result = $q->execute();
-        if ($result instanceof Cursor) {
-            $result = $result->toArray();
-            foreach ($result as $targetObject) {
-                $slug = preg_replace("@^{$replacement}@smi", $target, $targetObject[$config['slug']]);
-                $dm
-                    ->createQueryBuilder()
-                    ->update($config['useObjectClass'])
-                    ->field($config['slug'])->set($slug)
-                    ->field($meta->identifier)->equals($targetObject['_id'])
-                    ->getQuery()
-                    ->execute()
-                ;
-            }
+
+        if (!$result instanceof Iterator) {
+            return 0;
         }
+
+        $result = $result->toArray();
+        foreach ($result as $targetObject) {
+            $slug = preg_replace("@^{$replacement}@smi", $target, $targetObject[$config['slug']]);
+            $dm
+                ->createQueryBuilder()
+                ->updateMany($config['useObjectClass'])
+                ->field($config['slug'])->set($slug)
+                ->field($meta->identifier)->equals($targetObject['_id'])
+                ->getQuery()
+                ->execute()
+            ;
+        }
+
+        return count($result);
     }
 }

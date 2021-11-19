@@ -1,11 +1,13 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
 use Gedmo\Sluggable\SluggableListener;
-use Tool\BaseTestCaseMongoODM;
-use Translatable\Fixture\Document\Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Translatable\Fixture\Document\Article;
+use Gedmo\Translatable\Document\Translation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for Translatable behavior ODM implementation
@@ -16,10 +18,10 @@ use Translatable\Fixture\Document\Article;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TranslatableDocumentTest extends BaseTestCaseMongoODM
+final class TranslatableDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Translatable\\Fixture\\Document\\Article';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Document\\Translation';
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
     private $articleId;
@@ -78,9 +80,9 @@ class TranslatableDocumentTest extends BaseTestCaseMongoODM
         $this->translatableListener->setTranslatableLocale('en_us');
         $article = $repo->find($this->articleId);
 
-        $this->assertEquals('Title EN', $article->getTitle());
-        $this->assertEquals('Code EN', $article->getCode());
-        $this->assertEquals('title-en-code-en', $article->getSlug());
+        static::assertSame('Title EN', $article->getTitle());
+        static::assertSame('Code EN', $article->getCode());
+        static::assertSame('title-en-code-en', $article->getSlug());
 
         // test translation update
         /*$article->setTitle('Title EN Updated');

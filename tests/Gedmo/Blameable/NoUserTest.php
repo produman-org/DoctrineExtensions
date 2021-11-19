@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Blameable;
+namespace Gedmo\Tests\Blameable;
 
-use Blameable\Fixture\Document\Article;
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Blameable\BlameableListener;
+use Gedmo\Tests\Blameable\Fixture\Document\Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for Blameable behavior, when no user is available
@@ -12,9 +13,9 @@ use Tool\BaseTestCaseMongoODM;
  * @author Kévin Gomez <contact@kevingomez.fr>
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class NoUserTest extends BaseTestCaseMongoODM
+final class NoUserTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Blameable\Fixture\Document\Article';
+    public const ARTICLE = Article::class;
 
     protected function setUp(): void
     {
@@ -40,7 +41,7 @@ class NoUserTest extends BaseTestCaseMongoODM
 
         $repo = $this->dm->getRepository(self::ARTICLE);
         $sport = $repo->findOneBy(['title' => 'sport no user']);
-        $this->assertEmpty($sport->getCreated());
-        $this->assertEmpty($sport->getUpdated());
+        static::assertEmpty($sport->getCreated());
+        static::assertEmpty($sport->getUpdated());
     }
 }

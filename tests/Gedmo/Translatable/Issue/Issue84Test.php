@@ -1,10 +1,13 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\Article;
+use Doctrine\ORM\Proxy\Proxy;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\Article;
+use Gedmo\Translatable\Entity\Translation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -15,10 +18,10 @@ use Translatable\Fixture\Article;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue84Test extends BaseTestCaseORM
+final class Issue84Test extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Translatable\\Fixture\\Article';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
 
@@ -31,7 +34,7 @@ class Issue84Test extends BaseTestCaseORM
         $this->translatableListener->setTranslatableLocale('en');
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     public function testIssue84()
@@ -46,10 +49,10 @@ class Issue84Test extends BaseTestCaseORM
         $this->em->clear();
 
         $article = $this->em->getReference(self::ARTICLE, 1);
-        $this->assertInstanceOf('Doctrine\ORM\Proxy\Proxy', $article);
+        static::assertInstanceOf(Proxy::class, $article);
 
         $trans = $repo->findTranslations($article);
-        $this->assertEquals(1, count($trans));
+        static::assertCount(1, $trans);
     }
 
     protected function getUsedEntityFixtures()

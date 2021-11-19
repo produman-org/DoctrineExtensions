@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Blameable;
+namespace Gedmo\Tests\Blameable;
 
-use Blameable\Fixture\Entity\UsingTrait;
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
+use Gedmo\Blameable\BlameableListener;
+use Gedmo\Tests\Blameable\Fixture\Entity\UsingTrait;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Blameable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TraitUsageTest extends BaseTestCaseORM
+final class TraitUsageTest extends BaseTestCaseORM
 {
-    public const TARGET = 'Blameable\\Fixture\\Entity\\UsingTrait';
+    public const TARGET = UsingTrait::class;
 
     protected function setUp(): void
     {
@@ -42,8 +43,8 @@ class TraitUsageTest extends BaseTestCaseORM
         $this->em->persist($sport);
         $this->em->flush();
 
-        $this->assertNotNull($sport->getCreatedBy());
-        $this->assertNotNull($sport->getUpdatedBy());
+        static::assertNotNull($sport->getCreatedBy());
+        static::assertNotNull($sport->getUpdatedBy());
     }
 
     /**
@@ -52,8 +53,8 @@ class TraitUsageTest extends BaseTestCaseORM
     public function traitMethodthShouldReturnObject()
     {
         $sport = new UsingTrait();
-        $this->assertInstanceOf(self::TARGET, $sport->setCreatedBy('myuser'));
-        $this->assertInstanceOf(self::TARGET, $sport->setUpdatedBy('myuser'));
+        static::assertInstanceOf(self::TARGET, $sport->setCreatedBy('myuser'));
+        static::assertInstanceOf(self::TARGET, $sport->setUpdatedBy('myuser'));
     }
 
     protected function getUsedEntityFixtures()

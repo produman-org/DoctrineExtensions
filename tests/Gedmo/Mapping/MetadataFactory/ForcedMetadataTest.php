@@ -1,8 +1,11 @@
 <?php
 
+namespace Gedmo\Tests\Mapping\MetadataFactory;
+
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Version;
-use Mapping\Fixture\Unmapped\Timestampable;
+use Gedmo\Tests\Mapping\Fixture\Unmapped\Timestampable;
 
 /**
  * These are mapping tests for tree extension
@@ -13,9 +16,19 @@ use Mapping\Fixture\Unmapped\Timestampable;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
+final class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
 {
-    public function setUp(): void
+    /**
+     * @var Timestampable
+     */
+    private $timestampable;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setProxyDir(TESTS_TEMP_DIR);
@@ -39,7 +52,7 @@ class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
     private function prepare()
     {
         $cmf = $this->em->getMetadataFactory();
-        $metadata = new ClassMetadata('Mapping\Fixture\Unmapped\Timestampable');
+        $metadata = new ClassMetadata(Timestampable::class);
         $id = [];
         $id['fieldName'] = 'id';
         $id['type'] = 'integer';
@@ -59,7 +72,7 @@ class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_IDENTITY);
         $metadata->setIdGenerator(new \Doctrine\ORM\Id\IdentityGenerator(null));
         $metadata->setPrimaryTable(['name' => 'temp_test']);
-        $cmf->setMetadataFor('Mapping\Fixture\Unmapped\Timestampable', $metadata);
+        $cmf->setMetadataFor(Timestampable::class, $metadata);
 
         // trigger loadClassMetadata event
         $evm = $this->em->getEventManager();
@@ -72,7 +85,7 @@ class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
         $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($this->em);
         $schemaTool->dropSchema([]);
         $schemaTool->createSchema([
-            $this->em->getClassMetadata('Mapping\Fixture\Unmapped\Timestampable'),
+            $this->em->getClassMetadata(Timestampable::class),
         ]);
     }
 
@@ -83,23 +96,23 @@ class ForcedMetadataTest extends \PHPUnit\Framework\TestCase
     {
         $this->prepare();
 
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Unmapped\Timestampable');
+        $meta = $this->em->getClassMetadata(Timestampable::class);
         // driver falls back to annotation driver
         $conf = $this->timestampable->getConfiguration(
             $this->em,
-            'Mapping\Fixture\Unmapped\Timestampable'
+            Timestampable::class
         );
-        $this->assertTrue(isset($conf['create']));
+        static::assertTrue(isset($conf['create']));
 
         $test = new Timestampable();
         $this->em->persist($test);
         $this->em->flush();
 
         $id = $this->em
-            ->getClassMetadata('Mapping\Fixture\Unmapped\Timestampable')
+            ->getClassMetadata(Timestampable::class)
             ->getReflectionProperty('id')
             ->getValue($test)
         ;
-        $this->assertFalse(empty($id));
+        static::assertNotEmpty($id);
     }
 }

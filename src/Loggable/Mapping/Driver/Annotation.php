@@ -4,6 +4,8 @@ namespace Gedmo\Loggable\Mapping\Driver;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Gedmo\Exception\InvalidMappingException;
+use Gedmo\Mapping\Annotation\Loggable;
+use Gedmo\Mapping\Annotation\Versioned;
 use Gedmo\Mapping\Driver\AbstractAnnotationDriver;
 
 /**
@@ -21,12 +23,12 @@ class Annotation extends AbstractAnnotationDriver
     /**
      * Annotation to define that this object is loggable
      */
-    public const LOGGABLE = 'Gedmo\\Mapping\\Annotation\\Loggable';
+    public const LOGGABLE = Loggable::class;
 
     /**
      * Annotation to define that this property is versioned
      */
-    public const VERSIONED = 'Gedmo\\Mapping\\Annotation\\Versioned';
+    public const VERSIONED = Versioned::class;
 
     /**
      * {@inheritdoc}
@@ -72,6 +74,7 @@ class Annotation extends AbstractAnnotationDriver
                 }
                 if (isset($meta->embeddedClasses[$field])) {
                     $this->inspectEmbeddedForVersioned($field, $config, $meta);
+
                     continue;
                 }
                 // fields cannot be overrided and throws mapping exception
@@ -116,10 +119,10 @@ class Annotation extends AbstractAnnotationDriver
      */
     private function inspectEmbeddedForVersioned($field, array &$config, \Doctrine\ORM\Mapping\ClassMetadata $meta)
     {
-        $сlass = new \ReflectionClass($meta->embeddedClasses[$field]['class']);
+        $class = new \ReflectionClass($meta->embeddedClasses[$field]['class']);
 
         // property annotations
-        foreach ($сlass->getProperties() as $property) {
+        foreach ($class->getProperties() as $property) {
             // versioned property
             if ($this->reader->getPropertyAnnotation($property, self::VERSIONED)) {
                 $embeddedField = $field.'.'.$property->getName();

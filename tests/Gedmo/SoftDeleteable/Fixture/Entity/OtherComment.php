@@ -1,6 +1,6 @@
 <?php
 
-namespace SoftDeleteable\Fixture\Entity;
+namespace Gedmo\Tests\SoftDeleteable\Fixture\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,6 +25,11 @@ class OtherComment
      * @ORM\ManyToOne(targetEntity="OtherArticle", inversedBy="comments")
      */
     private $article;
+
+    /**
+     * @var \DateTimeInterface|null
+     */
+    private $deletedAt;
 
     public function getId()
     {

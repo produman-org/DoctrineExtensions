@@ -1,15 +1,16 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Handler\TreeSlug;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 use Gedmo\Tree\TreeListener;
-use Sluggable\Fixture\Handler\TreeSlug;
-use Tool\BaseTestCaseORM;
 
-class TreeSlugHandlerUniqueTest extends BaseTestCaseORM
+final class TreeSlugHandlerUniqueTest extends BaseTestCaseORM
 {
-    public const TARGET = 'Sluggable\\Fixture\\Handler\\TreeSlug';
+    public const TARGET = TreeSlug::class;
 
     protected function setUp(): void
     {
@@ -35,8 +36,8 @@ class TreeSlugHandlerUniqueTest extends BaseTestCaseORM
 
         $this->em->flush();
 
-        $this->assertEquals('foo', $foo1->getSlug());
-        $this->assertEquals('foo-1', $foo2->getSlug());
+        static::assertSame('foo', $foo1->getSlug());
+        static::assertSame('foo-1', $foo2->getSlug());
     }
 
     public function testUniqueLeaf()
@@ -58,8 +59,8 @@ class TreeSlugHandlerUniqueTest extends BaseTestCaseORM
 
         $this->em->flush();
 
-        $this->assertEquals('root/foo', $foo1->getSlug());
-        $this->assertEquals('root/foo-1', $foo2->getSlug());
+        static::assertSame('root/foo', $foo1->getSlug());
+        static::assertSame('root/foo-1', $foo2->getSlug());
     }
 
     protected function getUsedEntityFixtures()

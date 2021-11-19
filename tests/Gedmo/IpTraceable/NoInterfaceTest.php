@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\IpTraceable;
+namespace Gedmo\Tests\IpTraceable;
 
 use Doctrine\Common\EventManager;
-use IpTraceable\Fixture\WithoutInterface;
-use Tool\BaseTestCaseORM;
+use Gedmo\IpTraceable\IpTraceableListener;
+use Gedmo\Tests\IpTraceable\Fixture\WithoutInterface;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for IpTraceable behavior
@@ -15,10 +16,10 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class NoInterfaceTest extends BaseTestCaseORM
+final class NoInterfaceTest extends BaseTestCaseORM
 {
     public const TEST_IP = '34.234.1.10';
-    public const FIXTURE = 'IpTraceable\\Fixture\\WithoutInterface';
+    public const FIXTURE = WithoutInterface::class;
 
     protected function setUp(): void
     {
@@ -42,8 +43,8 @@ class NoInterfaceTest extends BaseTestCaseORM
         $this->em->clear();
 
         $test = $this->em->getRepository(self::FIXTURE)->findOneBy(['title' => 'Test']);
-        $this->assertEquals(self::TEST_IP, $test->getCreated());
-        $this->assertEquals(self::TEST_IP, $test->getUpdated());
+        static::assertSame(self::TEST_IP, $test->getCreated());
+        static::assertSame(self::TEST_IP, $test->getUpdated());
     }
 
     protected function getUsedEntityFixtures()

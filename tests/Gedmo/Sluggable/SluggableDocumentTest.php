@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Document\Article;
-use Tool\BaseTestCaseMongoODM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Document\Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
 
 /**
  * These are tests for sluggable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseMongoODM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SluggableDocumentTest extends BaseTestCaseMongoODM
+final class SluggableDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Sluggable\\Fixture\\Document\\Article';
+    public const ARTICLE = Article::class;
 
     protected function setUp(): void
     {
@@ -35,7 +36,7 @@ class SluggableDocumentTest extends BaseTestCaseMongoODM
         $repo = $this->dm->getRepository(self::ARTICLE);
         $article = $repo->findOneBy(['title' => 'My Title']);
 
-        $this->assertEquals('my-title-the-code', $article->getSlug());
+        static::assertSame('my-title-the-code', $article->getSlug());
 
         // test update
         $article->setTitle('New Title');
@@ -45,7 +46,7 @@ class SluggableDocumentTest extends BaseTestCaseMongoODM
         $this->dm->clear();
 
         $article = $repo->findOneBy(['title' => 'New Title']);
-        $this->assertEquals('new-title-the-code', $article->getSlug());
+        static::assertSame('new-title-the-code', $article->getSlug());
     }
 
     public function testUniqueSlugGeneration()
@@ -58,7 +59,7 @@ class SluggableDocumentTest extends BaseTestCaseMongoODM
             $this->dm->persist($article);
             $this->dm->flush();
             $this->dm->clear();
-            $this->assertEquals('my-title-the-code-'.($i + 1), $article->getSlug());
+            static::assertSame('my-title-the-code-'.($i + 1), $article->getSlug());
         }
     }
 
@@ -76,7 +77,7 @@ class SluggableDocumentTest extends BaseTestCaseMongoODM
         $this->dm->persist($article2);
 
         $this->dm->flush();
-        $this->assertEquals('my-s', $article2->getSlug());
+        static::assertSame('my-s', $article2->getSlug());
     }
 
     private function populate()
