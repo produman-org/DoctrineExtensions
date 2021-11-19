@@ -1,6 +1,6 @@
 <?php
 
-namespace Mapping\Fixture\Xml;
+namespace Gedmo\Tests\Mapping\Fixture\Xml;
 
 class MaterializedPathTree
 {
@@ -11,6 +11,8 @@ class MaterializedPathTree
     private $path;
 
     private $lockTime;
+
+    private $pathHash;
 
     private $parent;
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
- * @ORM\Entity(repositoryClass="Tree\Fixture\Repository\BehavioralCategoryRepository")
+ * @ORM\Entity(repositoryClass="Gedmo\Tests\Tree\Fixture\Repository\BehavioralCategoryRepository")
  * @Gedmo\Tree(type="nested")
  */
 class BehavioralCategory
@@ -77,7 +77,7 @@ class BehavioralCategory
         return $this->title;
     }
 
-    public function setParent(BehavioralCategory $parent)
+    public function setParent(self $parent)
     {
         $this->parent = $parent;
     }

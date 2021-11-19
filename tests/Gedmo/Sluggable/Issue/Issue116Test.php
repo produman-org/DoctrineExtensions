@@ -1,12 +1,13 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
-use Sluggable\Fixture\Issue116\Country;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Issue116\Country;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -17,9 +18,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue116Test extends BaseTestCaseORM
+final class Issue116Test extends BaseTestCaseORM
 {
-    public const TARGET = 'Sluggable\\Fixture\\Issue116\\Country';
+    public const TARGET = Country::class;
 
     protected function setUp(): void
     {
@@ -36,7 +37,7 @@ class Issue116Test extends BaseTestCaseORM
         $chain = new DriverChain();
         $chain->addDriver(
             new YamlDriver([__DIR__.'/../Fixture/Issue116/Mapping']),
-            'Sluggable\Fixture\Issue116'
+            'Gedmo\Tests\Sluggable\Fixture\Issue116'
         );
 
         return $chain;
@@ -50,7 +51,7 @@ class Issue116Test extends BaseTestCaseORM
         $this->em->persist($country);
         $this->em->flush();
 
-        $this->assertEquals('new-zealand', $country->getAlias());
+        static::assertSame('new-zealand', $country->getAlias());
     }
 
     protected function getUsedEntityFixtures()

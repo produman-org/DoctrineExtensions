@@ -1,14 +1,19 @@
 <?php
 
-namespace Gedmo\Mapping\Xml;
+namespace Gedmo\Tests\Mapping\Xml;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Gedmo\Loggable\Entity\LogEntry;
 use Gedmo\Loggable\LoggableListener;
-use Tool\BaseTestCaseOM;
+use Gedmo\Tests\Mapping\Fixture\Xml\Embedded;
+use Gedmo\Tests\Mapping\Fixture\Xml\Loggable;
+use Gedmo\Tests\Mapping\Fixture\Xml\LoggableWithEmbedded;
+use Gedmo\Tests\Mapping\Fixture\Xml\Status;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 
 /**
  * These are mapping extension tests
@@ -19,7 +24,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class LoggableMappingTest extends BaseTestCaseOM
+final class LoggableMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -31,7 +36,7 @@ class LoggableMappingTest extends BaseTestCaseOM
      */
     private $loggable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -42,51 +47,51 @@ class LoggableMappingTest extends BaseTestCaseOM
 
         $chain = new DriverChain();
         $chain->addDriver($annotationDriver, 'Gedmo\Loggable');
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
 
         $this->loggable = new LoggableListener();
         $this->evm = new EventManager();
         $this->evm->addEventSubscriber($this->loggable);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Gedmo\Loggable\Entity\LogEntry',
-            'Mapping\Fixture\Xml\Loggable',
-            'Mapping\Fixture\Xml\LoggableWithEmbedded',
-            'Mapping\Fixture\Xml\Embedded',
-            'Mapping\Fixture\Xml\Status',
+            LogEntry::class,
+            Loggable::class,
+            LoggableWithEmbedded::class,
+            Embedded::class,
+            Status::class,
         ], $chain);
     }
 
     public function testLoggableMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\Loggable');
+        $meta = $this->em->getClassMetadata(Loggable::class);
         $config = $this->loggable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('logEntryClass', $config);
-        $this->assertEquals('Gedmo\Loggable\Entity\LogEntry', $config['logEntryClass']);
-        $this->assertArrayHasKey('loggable', $config);
-        $this->assertTrue($config['loggable']);
+        static::assertArrayHasKey('logEntryClass', $config);
+        static::assertSame(LogEntry::class, $config['logEntryClass']);
+        static::assertArrayHasKey('loggable', $config);
+        static::assertTrue($config['loggable']);
 
-        $this->assertArrayHasKey('versioned', $config);
-        $this->assertCount(2, $config['versioned']);
-        $this->assertContains('title', $config['versioned']);
-        $this->assertContains('status', $config['versioned']);
+        static::assertArrayHasKey('versioned', $config);
+        static::assertCount(2, $config['versioned']);
+        static::assertContains('title', $config['versioned']);
+        static::assertContains('status', $config['versioned']);
     }
 
     public function testLoggableMetadataWithEmbedded()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\LoggableWithEmbedded');
+        $meta = $this->em->getClassMetadata(LoggableWithEmbedded::class);
         $config = $this->loggable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('logEntryClass', $config);
-        $this->assertEquals('Gedmo\Loggable\Entity\LogEntry', $config['logEntryClass']);
-        $this->assertArrayHasKey('loggable', $config);
-        $this->assertTrue($config['loggable']);
+        static::assertArrayHasKey('logEntryClass', $config);
+        static::assertSame(LogEntry::class, $config['logEntryClass']);
+        static::assertArrayHasKey('loggable', $config);
+        static::assertTrue($config['loggable']);
 
-        $this->assertArrayHasKey('versioned', $config);
-        $this->assertCount(3, $config['versioned']);
-        $this->assertContains('title', $config['versioned']);
-        $this->assertContains('status', $config['versioned']);
-        $this->assertContains('embedded', $config['versioned']);
+        static::assertArrayHasKey('versioned', $config);
+        static::assertCount(3, $config['versioned']);
+        static::assertContains('title', $config['versioned']);
+        static::assertContains('status', $config['versioned']);
+        static::assertContains('embedded', $config['versioned']);
     }
 }

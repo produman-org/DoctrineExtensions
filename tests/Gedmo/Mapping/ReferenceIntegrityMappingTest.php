@@ -1,12 +1,14 @@
 <?php
 
-namespace Gedmo\Mapping;
+namespace Gedmo\Tests\Mapping;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\YamlDriver;
 use Gedmo\ReferenceIntegrity\ReferenceIntegrityListener;
-use Tool\BaseTestCaseOM;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Referenced;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Referencer;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 
 /**
  * These are mapping tests for ReferenceIntegrity extension
@@ -18,7 +20,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class ReferenceIntegrityMappingTest extends BaseTestCaseOM
+final class ReferenceIntegrityMappingTest extends BaseTestCaseOM
 {
     /**
      * @var DocumentManager
@@ -30,9 +32,9 @@ class ReferenceIntegrityMappingTest extends BaseTestCaseOM
      */
     private $referenceIntegrity;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
-        $this->markTestSkipped('Intentionally skipping test. Doctrine MongoDB ODM 2.0 removed the YAML mapping driver; skipping test until it can be rewritten using a supported mapper.');
+        static::markTestSkipped('Intentionally skipping test. Doctrine MongoDB ODM 2.0 removed the YAML mapping driver; skipping test until it can be rewritten using a supported mapper.');
 
         parent::setUp();
 
@@ -47,17 +49,17 @@ class ReferenceIntegrityMappingTest extends BaseTestCaseOM
 
     public function testYamlMapping()
     {
-        $referencerMeta = $this->dm->getClassMetadata('Mapping\Fixture\Yaml\Referencer');
-        $referenceeMeta = $this->dm->getClassMetadata('Mapping\Fixture\Yaml\Referenced');
+        $referencerMeta = $this->dm->getClassMetadata(Referencer::class);
+        $referenceeMeta = $this->dm->getClassMetadata(Referenced::class);
         $config = $this->referenceIntegrity->getConfiguration($this->dm, $referencerMeta->name);
 
-        $this->assertNotEmpty($config['referenceIntegrity']);
+        static::assertNotEmpty($config['referenceIntegrity']);
         foreach ($config['referenceIntegrity'] as $propertyName => $referenceConfiguration) {
-            $this->assertArrayHasKey($propertyName, $referencerMeta->reflFields);
+            static::assertArrayHasKey($propertyName, $referencerMeta->reflFields);
 
             foreach ($referenceConfiguration as $inversedPropertyName => $integrityType) {
-                $this->assertArrayHasKey($inversedPropertyName, $referenceeMeta->reflFields);
-                $this->assertTrue(in_array($integrityType, ['nullify', 'restrict']));
+                static::assertArrayHasKey($inversedPropertyName, $referenceeMeta->reflFields);
+                static::assertContains($integrityType, ['nullify', 'restrict']);
             }
         }
     }

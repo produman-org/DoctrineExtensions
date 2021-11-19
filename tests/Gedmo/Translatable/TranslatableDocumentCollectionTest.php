@@ -1,10 +1,12 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseMongoODM;
-use Translatable\Fixture\Document\SimpleArticle as Article;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Translatable\Fixture\Document\SimpleArticle as Article;
+use Gedmo\Translatable\Document\Translation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -15,10 +17,10 @@ use Translatable\Fixture\Document\SimpleArticle as Article;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TranslatableDocumentCollectionTest extends BaseTestCaseMongoODM
+final class TranslatableDocumentCollectionTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Translatable\\Fixture\\Document\\SimpleArticle';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Document\\Translation';
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
     private $id;
@@ -46,17 +48,17 @@ class TranslatableDocumentCollectionTest extends BaseTestCaseMongoODM
         $sport = $this->dm->getRepository(self::ARTICLE)->find($this->id);
         $translations = $repo->findTranslations($sport);
 
-        $this->assertArrayHasKey('de_de', $translations);
-        $this->assertArrayHasKey('title', $translations['de_de']);
-        $this->assertArrayHasKey('content', $translations['de_de']);
-        $this->assertEquals('sport de', $translations['de_de']['title']);
-        $this->assertEquals('content de', $translations['de_de']['content']);
+        static::assertArrayHasKey('de_de', $translations);
+        static::assertArrayHasKey('title', $translations['de_de']);
+        static::assertArrayHasKey('content', $translations['de_de']);
+        static::assertSame('sport de', $translations['de_de']['title']);
+        static::assertSame('content de', $translations['de_de']['content']);
 
-        $this->assertArrayHasKey('ru_ru', $translations);
-        $this->assertArrayHasKey('title', $translations['ru_ru']);
-        $this->assertArrayHasKey('content', $translations['ru_ru']);
-        $this->assertEquals('sport ru', $translations['ru_ru']['title']);
-        $this->assertEquals('content ru', $translations['ru_ru']['content']);
+        static::assertArrayHasKey('ru_ru', $translations);
+        static::assertArrayHasKey('title', $translations['ru_ru']);
+        static::assertArrayHasKey('content', $translations['ru_ru']);
+        static::assertSame('sport ru', $translations['ru_ru']['title']);
+        static::assertSame('content ru', $translations['ru_ru']['content']);
     }
 
     /**
@@ -73,13 +75,13 @@ class TranslatableDocumentCollectionTest extends BaseTestCaseMongoODM
         $this->dm->flush();
 
         $translations = $repo->findTranslations($sport);
-        $this->assertCount(2, $translations);
+        static::assertCount(2, $translations);
 
-        $this->assertArrayHasKey('ru_ru', $translations);
-        $this->assertArrayHasKey('title', $translations['ru_ru']);
-        $this->assertArrayHasKey('content', $translations['ru_ru']);
-        $this->assertEquals('sport ru change', $translations['ru_ru']['title']);
-        $this->assertEquals('content ru change', $translations['ru_ru']['content']);
+        static::assertArrayHasKey('ru_ru', $translations);
+        static::assertArrayHasKey('title', $translations['ru_ru']);
+        static::assertArrayHasKey('content', $translations['ru_ru']);
+        static::assertSame('sport ru change', $translations['ru_ru']['title']);
+        static::assertSame('content ru change', $translations['ru_ru']['content']);
     }
 
     /**
@@ -101,28 +103,28 @@ class TranslatableDocumentCollectionTest extends BaseTestCaseMongoODM
 
         $this->dm->flush();
 
-        $this->assertEquals('sport en update', $sport->getTitle());
-        $this->assertEquals('content en update', $sport->getContent());
+        static::assertSame('sport en update', $sport->getTitle());
+        static::assertSame('content en update', $sport->getContent());
 
         $translations = $repo->findTranslations($sport);
 
-        $this->assertArrayHasKey('de_de', $translations);
-        $this->assertArrayHasKey('title', $translations['de_de']);
-        $this->assertArrayHasKey('content', $translations['de_de']);
-        $this->assertEquals('sport de', $translations['de_de']['title']);
-        $this->assertEquals('content de', $translations['de_de']['content']);
+        static::assertArrayHasKey('de_de', $translations);
+        static::assertArrayHasKey('title', $translations['de_de']);
+        static::assertArrayHasKey('content', $translations['de_de']);
+        static::assertSame('sport de', $translations['de_de']['title']);
+        static::assertSame('content de', $translations['de_de']['content']);
 
-        $this->assertArrayHasKey('ru_ru', $translations);
-        $this->assertArrayHasKey('title', $translations['ru_ru']);
-        $this->assertArrayHasKey('content', $translations['ru_ru']);
-        $this->assertEquals('sport ru change', $translations['ru_ru']['title']);
-        $this->assertEquals('content ru change', $translations['ru_ru']['content']);
+        static::assertArrayHasKey('ru_ru', $translations);
+        static::assertArrayHasKey('title', $translations['ru_ru']);
+        static::assertArrayHasKey('content', $translations['ru_ru']);
+        static::assertSame('sport ru change', $translations['ru_ru']['title']);
+        static::assertSame('content ru change', $translations['ru_ru']['content']);
 
-        $this->assertArrayHasKey('lt_lt', $translations);
-        $this->assertArrayHasKey('title', $translations['lt_lt']);
-        $this->assertArrayHasKey('content', $translations['lt_lt']);
-        $this->assertEquals('sport lt', $translations['lt_lt']['title']);
-        $this->assertEquals('content lt', $translations['lt_lt']['content']);
+        static::assertArrayHasKey('lt_lt', $translations);
+        static::assertArrayHasKey('title', $translations['lt_lt']);
+        static::assertArrayHasKey('content', $translations['lt_lt']);
+        static::assertSame('sport lt', $translations['lt_lt']['title']);
+        static::assertSame('content lt', $translations['lt_lt']['content']);
     }
 
     private function populate()

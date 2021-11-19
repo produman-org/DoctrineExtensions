@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture\Document;
+namespace Gedmo\Tests\Tree\Fixture\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MONGO;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -61,7 +61,7 @@ class Article
         return $this->title;
     }
 
-    public function setParent(Article $parent = null)
+    public function setParent(self $parent = null)
     {
         $this->parent = $parent;
     }

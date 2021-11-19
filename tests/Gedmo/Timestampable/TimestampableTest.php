@@ -1,13 +1,15 @@
 <?php
 
-namespace Gedmo\Timestampable;
+namespace Gedmo\Tests\Timestampable;
 
 use Doctrine\Common\EventManager;
-use Timestampable\Fixture\Article;
-use Timestampable\Fixture\Author;
-use Timestampable\Fixture\Comment;
-use Timestampable\Fixture\Type;
-use Tool\BaseTestCaseORM;
+use Doctrine\ORM\Proxy\Proxy;
+use Gedmo\Tests\Timestampable\Fixture\Article;
+use Gedmo\Tests\Timestampable\Fixture\Author;
+use Gedmo\Tests\Timestampable\Fixture\Comment;
+use Gedmo\Tests\Timestampable\Fixture\Type;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Timestampable\TimestampableListener;
 
 /**
  * These are tests for Timestampable behavior
@@ -18,11 +20,11 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TimestampableTest extends BaseTestCaseORM
+final class TimestampableTest extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Timestampable\\Fixture\\Article';
-    public const COMMENT = 'Timestampable\\Fixture\\Comment';
-    public const TYPE = 'Timestampable\\Fixture\\Type';
+    public const ARTICLE = Article::class;
+    public const COMMENT = Comment::class;
+    public const TYPE = Type::class;
 
     protected function setUp(): void
     {
@@ -31,7 +33,7 @@ class TimestampableTest extends BaseTestCaseORM
         $evm = new EventManager();
         $evm->addEventSubscriber(new TimestampableListener());
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     /**
@@ -51,7 +53,7 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->persist($newSport);
         $this->em->flush();
 
-        $this->assertNotNull($newSport->getUpdated());
+        static::assertNotNull($newSport->getUpdated());
     }
 
     /**
@@ -75,13 +77,13 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->persist($newSport);
         $this->em->flush();
 
-        $this->assertSame($newSport->getUpdated(), $updated, 'There was no change, should remain the same');
+        static::assertSame($newSport->getUpdated(), $updated, 'There was no change, should remain the same');
 
         $newSport->setTitle('updated');
         $this->em->persist($newSport);
         $this->em->flush();
 
-        $this->assertNotSame($newSport->getUpdated(), $updated, 'There was a change, should not remain the same');
+        static::assertNotSame($newSport->getUpdated(), $updated, 'There was a change, should not remain the same');
     }
 
     /**
@@ -109,19 +111,19 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->flush();
 
         $sport = $this->em->getRepository(self::ARTICLE)->findOneBy(['title' => 'Sport']);
-        $this->assertNotNull($sc = $sport->getCreated());
-        $this->assertNotNull($su = $sport->getUpdated());
-        $this->assertNull($sport->getContentChanged());
-        $this->assertNull($sport->getPublished());
-        $this->assertNull($sport->getAuthorChanged());
+        static::assertNotNull($sc = $sport->getCreated());
+        static::assertNotNull($su = $sport->getUpdated());
+        static::assertNull($sport->getContentChanged());
+        static::assertNull($sport->getPublished());
+        static::assertNull($sport->getAuthorChanged());
 
         $author = $sport->getAuthor();
         $author->setName('New author');
         $sport->setAuthor($author);
 
         $sportComment = $this->em->getRepository(self::COMMENT)->findOneBy(['message' => 'hello']);
-        $this->assertNotNull($scm = $sportComment->getModified());
-        $this->assertNull($sportComment->getClosed());
+        static::assertNotNull($scm = $sportComment->getModified());
+        static::assertNull($sportComment->getClosed());
 
         $sportComment->setStatus(1);
         $published = new Type();
@@ -134,9 +136,9 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->flush();
 
         $sportComment = $this->em->getRepository(self::COMMENT)->findOneBy(['message' => 'hello']);
-        $this->assertNotNull($scc = $sportComment->getClosed());
-        $this->assertNotNull($sp = $sport->getPublished());
-        $this->assertNotNull($sa = $sport->getAuthorChanged());
+        static::assertNotNull($scc = $sportComment->getClosed());
+        static::assertNotNull($sp = $sport->getPublished());
+        static::assertNotNull($sa = $sport->getAuthorChanged());
 
         $sport->setTitle('Updated');
         $this->em->persist($sport);
@@ -144,11 +146,11 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->persist($sportComment);
         $this->em->flush();
 
-        $this->assertSame($sport->getCreated(), $sc, 'Date created should remain same after update');
-        $this->assertNotSame($su2 = $sport->getUpdated(), $su, 'Date updated should change after update');
-        $this->assertSame($sport->getPublished(), $sp, 'Date published should remain the same after update');
-        $this->assertNotSame($scc2 = $sport->getContentChanged(), $scc, 'Content must have changed after update');
-        $this->assertSame($sport->getAuthorChanged(), $sa, 'Author should remain same after update');
+        static::assertSame($sport->getCreated(), $sc, 'Date created should remain same after update');
+        static::assertNotSame($su2 = $sport->getUpdated(), $su, 'Date updated should change after update');
+        static::assertSame($sport->getPublished(), $sp, 'Date published should remain the same after update');
+        static::assertNotSame($scc2 = $sport->getContentChanged(), $scc, 'Content must have changed after update');
+        static::assertSame($sport->getAuthorChanged(), $sa, 'Author should remain same after update');
 
         $author = $sport->getAuthor();
         $author->setName('Third author');
@@ -160,11 +162,11 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->persist($sportComment);
         $this->em->flush();
 
-        $this->assertSame($sport->getCreated(), $sc, 'Date created should remain same after update');
-        $this->assertNotSame($sport->getUpdated(), $su2, 'Date updated should change after update');
-        $this->assertSame($sport->getPublished(), $sp, 'Date published should remain the same after update');
-        $this->assertNotSame($sport->getContentChanged(), $scc2, 'Content must have changed after update');
-        $this->assertNotSame($sport->getAuthorChanged(), $sa, 'Author must have changed after update');
+        static::assertSame($sport->getCreated(), $sc, 'Date created should remain same after update');
+        static::assertNotSame($sport->getUpdated(), $su2, 'Date updated should change after update');
+        static::assertSame($sport->getPublished(), $sp, 'Date published should remain the same after update');
+        static::assertNotSame($sport->getContentChanged(), $scc2, 'Content must have changed after update');
+        static::assertNotSame($sport->getAuthorChanged(), $sa, 'Author must have changed after update');
     }
 
     /**
@@ -184,15 +186,15 @@ class TimestampableTest extends BaseTestCaseORM
 
         $repo = $this->em->getRepository(self::ARTICLE);
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals(
+        static::assertSame(
             '2000-01-01',
             $sport->getCreated()->format('Y-m-d')
         );
-        $this->assertEquals(
+        static::assertSame(
             '2000-01-01 12:00:00',
             $sport->getUpdated()->format('Y-m-d H:i:s')
         );
-        $this->assertEquals(
+        static::assertSame(
             '2000-01-01 12:00:00',
             $sport->getContentChanged()->format('Y-m-d H:i:s')
         );
@@ -207,7 +209,7 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->flush();
 
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals(
+        static::assertSame(
             '2000-01-01 12:00:00',
             $sport->getPublished()->format('Y-m-d H:i:s')
         );
@@ -228,7 +230,7 @@ class TimestampableTest extends BaseTestCaseORM
         $this->em->clear();
 
         $type = $this->em->getReference(self::TYPE, $type->getId());
-        $this->assertInstanceOf('Doctrine\ORM\Proxy\Proxy', $type);
+        static::assertInstanceOf(Proxy::class, $type);
 
         $art = new Article();
         $art->setTitle('Art');
@@ -240,7 +242,7 @@ class TimestampableTest extends BaseTestCaseORM
         $art->setType($type);
         $this->em->flush(); // in v2.4.x will work on insert too
 
-        $this->assertNotNull($art->getPublished());
+        static::assertNotNull($art->getPublished());
     }
 
     protected function getUsedEntityFixtures()

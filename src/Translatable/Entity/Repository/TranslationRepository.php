@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
 use Gedmo\Tool\Wrapper\EntityWrapper;
+use Gedmo\Translatable\Entity\MappedSuperclass\AbstractPersonalTranslation;
 use Gedmo\Translatable\Mapping\Event\Adapter\ORM as TranslatableAdapterORM;
 use Gedmo\Translatable\TranslatableListener;
 
@@ -33,7 +34,7 @@ class TranslationRepository extends EntityRepository
      */
     public function __construct(EntityManagerInterface $em, ClassMetadata $class)
     {
-        if ($class->getReflectionClass()->isSubclassOf('Gedmo\Translatable\Entity\MappedSuperclass\AbstractPersonalTranslation')) {
+        if ($class->getReflectionClass()->isSubclassOf(AbstractPersonalTranslation::class)) {
             throw new \Gedmo\Exception\UnexpectedValueException('This repository is useless for personal translations');
         }
         parent::__construct($em, $class);
@@ -84,7 +85,7 @@ class TranslationRepository extends EntityRepository
             }
             if ($listener->getDefaultLocale() != $listener->getTranslatableLocale($entity, $meta, $this->getEntityManager()) &&
                 $locale === $listener->getDefaultLocale()) {
-                $listener->setTranslationInDefaultLocale(spl_object_hash($entity), $field, $trans);
+                $listener->setTranslationInDefaultLocale(spl_object_id($entity), $field, $trans);
                 $needsPersist = $listener->getPersistDefaultLocaleTranslation();
             }
             $type = Type::getType($meta->getTypeOfField($field));
@@ -94,7 +95,7 @@ class TranslationRepository extends EntityRepository
                 if ($this->_em->getUnitOfWork()->isInIdentityMap($entity)) {
                     $this->_em->persist($trans);
                 } else {
-                    $oid = spl_object_hash($entity);
+                    $oid = spl_object_id($entity);
                     $listener->addPendingTranslationInsert($oid, $trans);
                 }
             }
@@ -128,9 +129,7 @@ class TranslationRepository extends EntityRepository
             $entityClass = $config['useObjectClass'];
             $translationMeta = $this->getClassMetadata(); // table inheritance support
 
-            $translationClass = isset($config['translationClass']) ?
-                $config['translationClass'] :
-                $translationMeta->rootEntityName;
+            $translationClass = $config['translationClass'] ?? $translationMeta->rootEntityName;
 
             $qb = $this->_em->createQueryBuilder();
             $qb->select('trans.content, trans.field, trans.locale')
@@ -163,7 +162,7 @@ class TranslationRepository extends EntityRepository
      * @param string $value
      * @param string $class
      *
-     * @return object - instance of $class or null if not found
+     * @return object instance of $class or null if not found
      */
     public function findObjectByTranslatedField($field, $value, $class)
     {
@@ -193,7 +192,7 @@ class TranslationRepository extends EntityRepository
      * Loads all translations with all translatable
      * fields by a given entity primary key
      *
-     * @param mixed $id - primary key value of an entity
+     * @param mixed $id primary key value of an entity
      *
      * @return array
      */
@@ -226,7 +225,7 @@ class TranslationRepository extends EntityRepository
     /**
      * Get the currently used TranslatableListener
      *
-     * @throws \Gedmo\Exception\RuntimeException - if listener is not found
+     * @throws \Gedmo\Exception\RuntimeException if listener is not found
      *
      * @return TranslatableListener
      */

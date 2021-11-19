@@ -1,10 +1,12 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\ConfigurationArticle;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\Sluggable;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\ConfigurationArticle;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -15,9 +17,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SluggableConfigurationTest extends BaseTestCaseORM
+final class SluggableConfigurationTest extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Sluggable\\Fixture\\ConfigurationArticle';
+    public const ARTICLE = ConfigurationArticle::class;
 
     private $articleId;
 
@@ -36,8 +38,8 @@ class SluggableConfigurationTest extends BaseTestCaseORM
     {
         $article = $this->em->find(self::ARTICLE, $this->articleId);
 
-        $this->assertTrue($article instanceof Sluggable);
-        $this->assertEquals('the-title-my-code', $article->getSlug());
+        static::assertInstanceOf(Sluggable::class, $article);
+        static::assertSame('the-title-my-code', $article->getSlug());
     }
 
     public function testNonUniqueSlugGeneration()
@@ -50,7 +52,7 @@ class SluggableConfigurationTest extends BaseTestCaseORM
             $this->em->persist($article);
             $this->em->flush();
             $this->em->clear();
-            $this->assertEquals('the-title-my-code', $article->getSlug());
+            static::assertSame('the-title-my-code', $article->getSlug());
         }
     }
 
@@ -66,7 +68,7 @@ class SluggableConfigurationTest extends BaseTestCaseORM
         $this->em->clear();
 
         $shorten = $article->getSlug();
-        $this->assertEquals(32, strlen($shorten));
+        static::assertSame(32, strlen($shorten));
     }
 
     public function testNonUpdatableSlug()
@@ -77,7 +79,7 @@ class SluggableConfigurationTest extends BaseTestCaseORM
         $this->em->flush();
         $this->em->clear();
 
-        $this->assertEquals('the-title-my-code', $article->getSlug());
+        static::assertSame('the-title-my-code', $article->getSlug());
     }
 
     protected function getUsedEntityFixtures()

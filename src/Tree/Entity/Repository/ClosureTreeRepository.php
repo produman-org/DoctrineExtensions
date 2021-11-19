@@ -62,14 +62,14 @@ class ClosureTreeRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @throws InvalidArgumentException - if input is not valid
+     * @throws InvalidArgumentException if input is not valid
      *
      * @return Query
      */
     public function getPathQuery($node)
     {
         $meta = $this->getClassMetadata();
-        if (!$node instanceof $meta->name) {
+        if (!is_a($node, $meta->getName())) {
             throw new InvalidArgumentException('Node is not related to this repository');
         }
         if (!$this->_em->getUnitOfWork()->isInIdentityMap($node)) {
@@ -93,11 +93,11 @@ class ClosureTreeRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @return array - list of Nodes in path
+     * @return array list of Nodes in path
      */
     public function getPath($node)
     {
-        return array_map(function (AbstractClosure $closure) {
+        return array_map(static function (AbstractClosure $closure) {
             return $closure->getAncestor();
         }, $this->getPathQuery($node)->getResult());
     }
@@ -112,7 +112,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
 
         $qb = $this->getQueryBuilder();
         if (null !== $node) {
-            if ($node instanceof $meta->name) {
+            if (is_a($node, $meta->getName())) {
                 if (!$this->_em->getUnitOfWork()->isInIdentityMap($node)) {
                     throw new InvalidArgumentException('Node is not managed by UnitOfWork');
                 }
@@ -175,7 +175,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
     {
         $result = $this->childrenQuery($node, $direct, $sortByField, $direction, $includeNode)->getResult();
         if ($node) {
-            $result = array_map(function (AbstractClosure $closure) {
+            $result = array_map(static function (AbstractClosure $closure) {
                 return $closure->getDescendant();
             }, $result);
         }
@@ -215,12 +215,12 @@ class ClosureTreeRepository extends AbstractTreeRepository
      * @param object $node
      *
      * @throws \Gedmo\Exception\InvalidArgumentException
-     * @throws \Gedmo\Exception\RuntimeException         - if something fails in transaction
+     * @throws \Gedmo\Exception\RuntimeException         if something fails in transaction
      */
     public function removeFromTree($node)
     {
         $meta = $this->getClassMetadata();
-        if (!$node instanceof $meta->name) {
+        if (!is_a($node, $meta->getName())) {
             throw new InvalidArgumentException('Node is not related to this repository');
         }
         $wrapped = new EntityWrapper($node, $this->_em);
@@ -239,6 +239,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
         $nodesToReparent = $q->getResult();
         // process updates in transaction
         $this->_em->getConnection()->beginTransaction();
+
         try {
             foreach ($nodesToReparent as $nodeToReparent) {
                 $id = $meta->getReflectionProperty($pk)->getValue($nodeToReparent);
@@ -256,7 +257,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
                     ->getStrategy($this->_em, $meta->name)
                     ->updateNode($this->_em, $nodeToReparent, $node);
 
-                $oid = spl_object_hash($nodeToReparent);
+                $oid = spl_object_id($nodeToReparent);
                 $this->_em->getUnitOfWork()->setOriginalEntityProperty($oid, $config['parent'], $parent);
             }
 
@@ -270,6 +271,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
         } catch (\Exception $e) {
             $this->_em->close();
             $this->_em->getConnection()->rollback();
+
             throw new \Gedmo\Exception\RuntimeException('Transaction failed: '.$e->getMessage(), null, $e);
         }
         // remove from identity map
@@ -281,9 +283,9 @@ class ClosureTreeRepository extends AbstractTreeRepository
      * Process nodes and produce an array with the
      * structure of the tree
      *
-     * @param array - Array of nodes
+     * @param array $nodes Array of nodes
      *
-     * @return array - Array with tree structure
+     * @return array Array with tree structure
      */
     public function buildTreeArray(array $nodes)
     {
@@ -380,7 +382,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
         $options = array_merge($defaultOptions, $options);
 
         if (isset($options['childSort']) && is_array($options['childSort']) &&
-            isset($options['childSort']['field']) && isset($options['childSort']['dir'])) {
+            isset($options['childSort']['field'], $options['childSort']['dir'])) {
             $q->addOrderBy(
                 'node.'.$options['childSort']['field'],
                 'asc' == strtolower($options['childSort']['dir']) ? 'asc' : 'desc'
@@ -413,7 +415,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
           WHERE c.id IS NULL
         ");
 
-        if ($missingSelfRefsCount = intval($q->getSingleScalarResult())) {
+        if ($missingSelfRefsCount = (int) $q->getSingleScalarResult()) {
             $errors[] = "Missing $missingSelfRefsCount self referencing closures";
         }
 
@@ -425,7 +427,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
           WHERE c2.id IS NULL AND node.$nodeIdField <> c1.ancestor
         ");
 
-        if ($missingClosuresCount = intval($q->getSingleScalarResult())) {
+        if ($missingClosuresCount = (int) $q->getSingleScalarResult()) {
             $errors[] = "Missing $missingClosuresCount closures";
         }
 
@@ -437,7 +439,7 @@ class ClosureTreeRepository extends AbstractTreeRepository
             WHERE c2.id IS NULL AND c1.descendant <> c1.ancestor
         ");
 
-        if ($invalidClosuresCount = intval($q->getSingleScalarResult())) {
+        if ($invalidClosuresCount = (int) $q->getSingleScalarResult()) {
             $errors[] = "Found $invalidClosuresCount invalid closures";
         }
 
@@ -545,12 +547,12 @@ class ClosureTreeRepository extends AbstractTreeRepository
         $batchSize = 1000;
         $q = $this->_em->createQuery($dql)->setMaxResults($batchSize)->setCacheable(false);
 
-        while (($ids = $q->getScalarResult()) && !empty($ids)) {
-            $ids = array_map(function ($el) {
+        while (($ids = $q->getScalarResult()) && [] !== $ids) {
+            $ids = array_map(static function (array $el) {
                 return $el['id'];
             }, $ids);
             $query = "DELETE FROM {$closureTableName} WHERE id IN (".implode(', ', $ids).')';
-            if (!$conn->executeQuery($query)) {
+            if (0 === $conn->executeStatement($query)) {
                 throw new \RuntimeException('Failed to remove incorrect closures');
             }
             $deletedClosuresCount += count($ids);

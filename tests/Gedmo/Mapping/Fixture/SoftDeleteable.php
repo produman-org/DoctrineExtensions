@@ -1,6 +1,6 @@
 <?php
 
-namespace Mapping\Fixture;
+namespace Gedmo\Tests\Mapping\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -17,6 +17,21 @@ class SoftDeleteable
      * @ORM\Column(type="integer")
      */
     private $id;
+
+    /**
+     * @var string|null
+     */
+    private $title;
+
+    /**
+     * @var string|null
+     */
+    private $code;
+
+    /**
+     * @var string|null
+     */
+    private $slug;
 
     /**
      * @ORM\Column(name="deleted_at", type="datetime", nullable=true)

@@ -3,7 +3,7 @@
 namespace Gedmo\Tool\Wrapper;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\Proxy\Proxy;
+use ProxyManager\Proxy\GhostObjectInterface;
 
 /**
  * Wraps document or proxy for more convenient
@@ -83,7 +83,7 @@ class MongoDocumentWrapper extends AbstractWrapper
     public function getIdentifier($single = true)
     {
         if (!$this->identifier) {
-            if ($this->object instanceof Proxy) {
+            if ($this->object instanceof GhostObjectInterface) {
                 $uow = $this->om->getUnitOfWork();
                 if ($uow->isInIdentityMap($this->object)) {
                     $this->identifier = (string) $uow->getDocumentIdentifier($this->object);
@@ -106,20 +106,22 @@ class MongoDocumentWrapper extends AbstractWrapper
     protected function initialize()
     {
         if (!$this->initialized) {
-            if ($this->object instanceof Proxy) {
+            if ($this->object instanceof GhostObjectInterface) {
                 $uow = $this->om->getUnitOfWork();
-                if (!$this->object->__isInitialized__) {
+                if (!$this->object->isProxyInitialized()) {
                     $persister = $uow->getDocumentPersister($this->meta->name);
                     $identifier = null;
                     if ($uow->isInIdentityMap($this->object)) {
                         $identifier = $this->getIdentifier();
                     } else {
                         // this may not happen but in case
-                        $reflProperty = new \ReflectionProperty($this->object, 'identifier');
-                        $reflProperty->setAccessible(true);
-                        $identifier = $reflProperty->getValue($this->object);
+                        $getIdentifier = \Closure::bind(function () {
+                            return $this->identifier;
+                        }, $this->object, get_class($this->object));
+
+                        $identifier = $getIdentifier();
                     }
-                    $this->object->__isInitialized__ = true;
+                    $this->object->initializeProxy();
                     $persister->load($identifier, $this->object);
                 }
             }

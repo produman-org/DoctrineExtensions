@@ -1,12 +1,14 @@
 <?php
 
-namespace Gedmo\Mapping\Xml\Simplified;
+namespace Gedmo\Tests\Mapping\Xml\Simplified;
 
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
+use Gedmo\Tests\Mapping\Fixture\Xml\Status;
+use Gedmo\Tests\Mapping\Fixture\Xml\Timestampable;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 use Gedmo\Timestampable\TimestampableListener;
-use Tool\BaseTestCaseORM;
 
 /**
  * These are mapping extension tests
@@ -17,14 +19,14 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TimestampableMappingTest extends BaseTestCaseORM
+final class TimestampableMappingTest extends BaseTestCaseORM
 {
     /**
      * @var Gedmo\Timestampable\TimestampableListener
      */
     private $timestampable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -38,11 +40,11 @@ class TimestampableMappingTest extends BaseTestCaseORM
     protected function getMetadataDriverImplementation()
     {
         $xmlDriver = new SimplifiedXmlDriver([
-            __DIR__.'/../../Driver/Xml' => 'Mapping\Fixture\Xml',
+            __DIR__.'/../../Driver/Xml' => 'Gedmo\Tests\Mapping\Fixture\Xml',
         ]);
 
         $chain = new DriverChain();
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
 
         return $chain;
     }
@@ -50,25 +52,25 @@ class TimestampableMappingTest extends BaseTestCaseORM
     protected function getUsedEntityFixtures()
     {
         return [
-            'Mapping\Fixture\Xml\Timestampable',
-            'Mapping\Fixture\Xml\Status',
+            Timestampable::class,
+            Status::class,
         ];
     }
 
     public function testTimestampableMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\Timestampable');
+        $meta = $this->em->getClassMetadata(Timestampable::class);
         $config = $this->timestampable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('create', $config);
-        $this->assertEquals('created', $config['create'][0]);
-        $this->assertArrayHasKey('update', $config);
-        $this->assertEquals('updated', $config['update'][0]);
-        $this->assertArrayHasKey('change', $config);
+        static::assertArrayHasKey('create', $config);
+        static::assertSame('created', $config['create'][0]);
+        static::assertArrayHasKey('update', $config);
+        static::assertSame('updated', $config['update'][0]);
+        static::assertArrayHasKey('change', $config);
         $onChange = $config['change'][0];
 
-        $this->assertEquals('published', $onChange['field']);
-        $this->assertEquals('status.title', $onChange['trackedField']);
-        $this->assertEquals('Published', $onChange['value']);
+        static::assertSame('published', $onChange['field']);
+        static::assertSame('status.title', $onChange['trackedField']);
+        static::assertSame('Published', $onChange['value']);
     }
 }

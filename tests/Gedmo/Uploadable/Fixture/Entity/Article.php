@@ -1,6 +1,6 @@
 <?php
 
-namespace Uploadable\Fixture\Entity;
+namespace Gedmo\Tests\Uploadable\Fixture\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -26,6 +26,11 @@ class Article
      * @ORM\OneToMany(targetEntity="File", mappedBy="article", cascade={"persist", "remove"})
      */
     private $files;
+
+    /**
+     * @var string|null
+     */
+    private $filePath;
 
     public function __construct()
     {

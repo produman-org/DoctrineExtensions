@@ -12,6 +12,8 @@ use Doctrine\ORM\Query\AST\RangeVariableDeclaration;
 use Doctrine\ORM\Query\AST\SelectStatement;
 use Doctrine\ORM\Query\Exec\SingleSelectExecutor;
 use Doctrine\ORM\Query\SqlWalker;
+use Gedmo\Translatable\Hydrator\ORM\ObjectHydrator;
+use Gedmo\Translatable\Hydrator\ORM\SimpleObjectHydrator;
 use Gedmo\Translatable\Mapping\Event\Adapter\ORM as TranslatableEventAdapter;
 use Gedmo\Translatable\TranslatableListener;
 
@@ -88,6 +90,11 @@ class TranslationWalker extends SqlWalker
     private $components = [];
 
     /**
+     * @var TranslatableListener
+     */
+    private $listener;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct($query, $parserResult, array $queryComponents)
@@ -129,14 +136,14 @@ class TranslationWalker extends SqlWalker
             $this->getQuery()->setHydrationMode(self::HYDRATE_OBJECT_TRANSLATION);
             $this->getEntityManager()->getConfiguration()->addCustomHydrationMode(
                 self::HYDRATE_OBJECT_TRANSLATION,
-                'Gedmo\\Translatable\\Hydrator\\ORM\\ObjectHydrator'
+                ObjectHydrator::class
             );
             $this->getQuery()->setHint(Query::HINT_REFRESH, true);
         } elseif (Query::HYDRATE_SIMPLEOBJECT === $hydrationMode) {
             $this->getQuery()->setHydrationMode(self::HYDRATE_SIMPLE_OBJECT_TRANSLATION);
             $this->getEntityManager()->getConfiguration()->addCustomHydrationMode(
                 self::HYDRATE_SIMPLE_OBJECT_TRANSLATION,
-                'Gedmo\\Translatable\\Hydrator\\ORM\\SimpleObjectHydrator'
+                SimpleObjectHydrator::class
             );
             $this->getQuery()->setHint(Query::HINT_REFRESH, true);
         }
@@ -282,10 +289,8 @@ class TranslationWalker extends SqlWalker
      * on used query components
      *
      * @todo: make it cleaner
-     *
-     * @return string
      */
-    private function prepareTranslatedComponents()
+    private function prepareTranslatedComponents(): void
     {
         $q = $this->getQuery();
         $locale = $q->getHint(TranslatableListener::HINT_TRANSLATABLE_LOCALE);
@@ -400,7 +405,7 @@ class TranslationWalker extends SqlWalker
     /**
      * Get the currently used TranslatableListener
      *
-     * @throws \Gedmo\Exception\RuntimeException - if listener is not found
+     * @throws \Gedmo\Exception\RuntimeException if listener is not found
      *
      * @return TranslatableListener
      */
@@ -429,7 +434,7 @@ class TranslationWalker extends SqlWalker
     private function replace(array $repl, $str)
     {
         foreach ($repl as $target => $result) {
-            $str = preg_replace_callback('/(\s|\()('.$target.')(,?)(\s|\)|$)/smi', function ($m) use ($result) {
+            $str = preg_replace_callback('/(\s|\()('.$target.')(,?)(\s|\)|$)/smi', static function ($m) use ($result) {
                 return $m[1].$result.$m[3].$m[4];
             }, $str);
         }
@@ -442,13 +447,13 @@ class TranslationWalker extends SqlWalker
      *
      * @NOTE: personal translations manages that for themselves.
      *
-     * @param $component - a column with an alias to cast
-     * @param $typeFK - translation table foreign key type
-     * @param $typePK - primary key type which references translation table
+     * @param string $component a column with an alias to cast
+     * @param string $typeFK    translation table foreign key type
+     * @param string $typePK    primary key type which references translation table
      *
-     * @return string - modified $component if needed
+     * @return string modified $component if needed
      */
-    private function getCastedForeignKey($component, $typeFK, $typePK)
+    private function getCastedForeignKey(string $component, string $typeFK, string $typePK): string
     {
         // the keys are of same type
         if ($typeFK === $typePK) {
@@ -458,11 +463,12 @@ class TranslationWalker extends SqlWalker
         // try to look at postgres casting
         if ($this->platform instanceof PostgreSqlPlatform) {
             switch ($typeFK) {
-            case 'string':
-            case 'guid':
-                // need to cast to VARCHAR
-                $component = $component.'::VARCHAR';
-                break;
+                case 'string':
+                case 'guid':
+                    // need to cast to VARCHAR
+                    $component = $component.'::VARCHAR';
+
+                    break;
             }
         }
 

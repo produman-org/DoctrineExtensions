@@ -77,11 +77,11 @@ class TreeSlugHandler implements SlugHandlerWithUniqueCallbackInterface
     {
         $this->om = $ea->getObjectManager();
         $this->isInsert = $this->om->getUnitOfWork()->isScheduledForInsert($object);
-        $options = $config['handlers'][get_called_class()];
+        $options = $config['handlers'][static::class];
 
-        $this->usedPathSeparator = isset($options['separator']) ? $options['separator'] : self::SEPARATOR;
-        $this->prefix = isset($options['prefix']) ? $options['prefix'] : '';
-        $this->suffix = isset($options['suffix']) ? $options['suffix'] : '';
+        $this->usedPathSeparator = $options['separator'] ?? self::SEPARATOR;
+        $this->prefix = $options['prefix'] ?? '';
+        $this->suffix = $options['suffix'] ?? '';
 
         if (!$this->isInsert && !$needToChangeSlug) {
             $changeSet = $ea->getObjectChangeSet($this->om->getUnitOfWork(), $object);
@@ -96,7 +96,7 @@ class TreeSlugHandler implements SlugHandlerWithUniqueCallbackInterface
      */
     public function postSlugBuild(SluggableAdapter $ea, array &$config, $object, &$slug)
     {
-        $options = $config['handlers'][get_called_class()];
+        $options = $config['handlers'][static::class];
         $this->parentSlug = '';
 
         $wrapped = AbstractWrapper::wrap($object, $this->om);
@@ -155,12 +155,12 @@ class TreeSlugHandler implements SlugHandlerWithUniqueCallbackInterface
                     if (property_exists($object, '__isInitialized__') && !$object->__isInitialized__) {
                         continue;
                     }
-                    $oid = spl_object_hash($object);
+
                     $objectSlug = $meta->getReflectionProperty($config['slug'])->getValue($object);
                     if (preg_match("@^{$target}{$config['pathSeparator']}@smi", $objectSlug)) {
                         $objectSlug = str_replace($target, $slug, $objectSlug);
                         $meta->getReflectionProperty($config['slug'])->setValue($object, $objectSlug);
-                        $ea->setOriginalObjectProperty($uow, $oid, $config['slug'], $objectSlug);
+                        $ea->setOriginalObjectProperty($uow, $object, $config['slug'], $objectSlug);
                     }
                 }
             }

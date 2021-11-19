@@ -1,12 +1,14 @@
 <?php
 
-namespace Gedmo\Blameable;
+namespace Gedmo\Tests\Blameable;
 
-use Blameable\Fixture\Entity\Article;
-use Blameable\Fixture\Entity\Comment;
-use Blameable\Fixture\Entity\Type;
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
+use Gedmo\Blameable\Blameable;
+use Gedmo\Blameable\BlameableListener;
+use Gedmo\Tests\Blameable\Fixture\Entity\Article;
+use Gedmo\Tests\Blameable\Fixture\Entity\Comment;
+use Gedmo\Tests\Blameable\Fixture\Entity\Type;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Blameable behavior
@@ -17,11 +19,11 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class BlameableTest extends BaseTestCaseORM
+final class BlameableTest extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Blameable\\Fixture\\Entity\\Article';
-    public const COMMENT = 'Blameable\\Fixture\\Entity\\Comment';
-    public const TYPE = 'Blameable\\Fixture\\Entity\\Type';
+    public const ARTICLE = Article::class;
+    public const COMMENT = Comment::class;
+    public const TYPE = Type::class;
 
     protected function setUp(): void
     {
@@ -41,14 +43,14 @@ class BlameableTest extends BaseTestCaseORM
         $sport = new Article();
         $sport->setTitle('Sport');
 
-        $this->assertTrue($sport instanceof Blameable);
+        static::assertInstanceOf(Blameable::class, $sport);
 
         $sportComment = new Comment();
         $sportComment->setMessage('hello');
         $sportComment->setArticle($sport);
         $sportComment->setStatus(0);
 
-        $this->assertTrue($sportComment instanceof Blameable);
+        static::assertInstanceOf(Blameable::class, $sportComment);
 
         $this->em->persist($sport);
         $this->em->persist($sportComment);
@@ -56,13 +58,13 @@ class BlameableTest extends BaseTestCaseORM
         $this->em->clear();
 
         $sport = $this->em->getRepository(self::ARTICLE)->findOneBy(['title' => 'Sport']);
-        $this->assertEquals('testuser', $sport->getCreated());
-        $this->assertEquals('testuser', $sport->getUpdated());
-        $this->assertNull($sport->getPublished());
+        static::assertSame('testuser', $sport->getCreated());
+        static::assertSame('testuser', $sport->getUpdated());
+        static::assertNull($sport->getPublished());
 
         $sportComment = $this->em->getRepository(self::COMMENT)->findOneBy(['message' => 'hello']);
-        $this->assertEquals('testuser', $sportComment->getModified());
-        $this->assertNull($sportComment->getClosed());
+        static::assertSame('testuser', $sportComment->getModified());
+        static::assertNull($sportComment->getClosed());
 
         $sportComment->setStatus(1);
         $published = new Type();
@@ -77,9 +79,9 @@ class BlameableTest extends BaseTestCaseORM
         $this->em->clear();
 
         $sportComment = $this->em->getRepository(self::COMMENT)->findOneBy(['message' => 'hello']);
-        $this->assertEquals('testuser', $sportComment->getClosed());
+        static::assertSame('testuser', $sportComment->getClosed());
 
-        $this->assertEquals('testuser', $sport->getPublished());
+        static::assertSame('testuser', $sport->getPublished());
     }
 
     public function testForcedValues()
@@ -95,8 +97,8 @@ class BlameableTest extends BaseTestCaseORM
 
         $repo = $this->em->getRepository(self::ARTICLE);
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals('myuser', $sport->getCreated());
-        $this->assertEquals('myuser', $sport->getUpdated());
+        static::assertSame('myuser', $sport->getCreated());
+        static::assertSame('myuser', $sport->getUpdated());
 
         $published = new Type();
         $published->setTitle('Published');
@@ -109,7 +111,7 @@ class BlameableTest extends BaseTestCaseORM
         $this->em->clear();
 
         $sport = $repo->findOneBy(['title' => 'sport forced']);
-        $this->assertEquals('myuser', $sport->getPublished());
+        static::assertSame('myuser', $sport->getPublished());
     }
 
     protected function getUsedEntityFixtures()

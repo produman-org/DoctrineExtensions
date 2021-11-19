@@ -1,15 +1,16 @@
 <?php
 
-namespace Gedmo\Mapping;
+namespace Gedmo\Tests\Mapping;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Uploadable;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 use Gedmo\Uploadable\Mapping\Validator;
 use Gedmo\Uploadable\UploadableListener;
-use Tool\BaseTestCaseOM;
 
 /**
  * These are mapping tests for Uploadable extension
@@ -21,7 +22,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class UploadableMappingTest extends BaseTestCaseOM
+final class UploadableMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -33,7 +34,7 @@ class UploadableMappingTest extends BaseTestCaseOM
      */
     private $listener;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -45,37 +46,37 @@ class UploadableMappingTest extends BaseTestCaseOM
         $yamlDriver = new YamlDriver(__DIR__.'/Driver/Yaml');
 
         $chain = new DriverChain();
-        $chain->addDriver($yamlDriver, 'Mapping\Fixture\Yaml');
-        $chain->addDriver($annotationDriver, 'Mapping\Fixture');
+        $chain->addDriver($yamlDriver, 'Gedmo\Tests\Mapping\Fixture\Yaml');
+        $chain->addDriver($annotationDriver, 'Gedmo\Tests\Mapping\Fixture');
 
         $this->listener = new UploadableListener();
         $this->evm = new EventManager();
         $this->evm->addEventSubscriber($this->listener);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Mapping\Fixture\Yaml\Uploadable',
+            Uploadable::class,
         ], $chain);
     }
 
     public function testYamlMapping()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Yaml\Uploadable');
+        $meta = $this->em->getClassMetadata(Uploadable::class);
         $config = $this->listener->getConfiguration($this->em, $meta->name);
 
-        $this->assertTrue($config['uploadable']);
-        $this->assertTrue($config['allowOverwrite']);
-        $this->assertTrue($config['appendNumber']);
-        $this->assertEquals('/my/path', $config['path']);
-        $this->assertEquals('getPath', $config['pathMethod']);
-        $this->assertEquals('mimeType', $config['fileMimeTypeField']);
-        $this->assertEquals('path', $config['filePathField']);
-        $this->assertEquals('size', $config['fileSizeField']);
-        $this->assertEquals('callbackMethod', $config['callback']);
-        $this->assertEquals('SHA1', $config['filenameGenerator']);
-        $this->assertEquals(1500, $config['maxSize']);
-        $this->assertContains('text/plain', $config['allowedTypes']);
-        $this->assertContains('text/css', $config['allowedTypes']);
-        $this->assertContains('video/jpeg', $config['disallowedTypes']);
-        $this->assertContains('text/html', $config['disallowedTypes']);
+        static::assertTrue($config['uploadable']);
+        static::assertTrue($config['allowOverwrite']);
+        static::assertTrue($config['appendNumber']);
+        static::assertSame('/my/path', $config['path']);
+        static::assertSame('getPath', $config['pathMethod']);
+        static::assertSame('mimeType', $config['fileMimeTypeField']);
+        static::assertSame('path', $config['filePathField']);
+        static::assertSame('size', $config['fileSizeField']);
+        static::assertSame('callbackMethod', $config['callback']);
+        static::assertSame('SHA1', $config['filenameGenerator']);
+        static::assertSame(1500.0, $config['maxSize']);
+        static::assertContains('text/plain', $config['allowedTypes']);
+        static::assertContains('text/css', $config['allowedTypes']);
+        static::assertContains('video/jpeg', $config['disallowedTypes']);
+        static::assertContains('text/html', $config['disallowedTypes']);
     }
 }

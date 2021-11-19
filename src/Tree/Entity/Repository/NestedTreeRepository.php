@@ -83,11 +83,11 @@ class NestedTreeRepository extends AbstractTreeRepository
      *
      * @see \Doctrine\ORM\EntityRepository
      *
-     * @throws InvalidArgumentException - If arguments are invalid
-     * @throws \BadMethodCallException  - If the method called is an invalid find* or persistAs* method
+     * @throws InvalidArgumentException If arguments are invalid
+     * @throws \BadMethodCallException  If the method called is an invalid find* or persistAs* method
      *                                  or no find* either persistAs* method at all and therefore an invalid method call
      *
-     * @return mixed - TreeNestedRepository if persistAs* is called
+     * @return mixed TreeNestedRepository if persistAs* is called
      */
     public function __call($method, $args)
     {
@@ -118,7 +118,7 @@ class NestedTreeRepository extends AbstractTreeRepository
                 $position = substr($position, 0, -2);
             }
             $wrapped->setPropertyValue($config['left'], 0); // simulate changeset
-            $oid = spl_object_hash($node);
+            $oid = spl_object_id($node);
             $this->listener
                 ->getStrategy($this->_em, $meta->name)
                 ->setNodePosition($oid, $position)
@@ -137,14 +137,14 @@ class NestedTreeRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @throws InvalidArgumentException - if input is not valid
+     * @throws InvalidArgumentException if input is not valid
      *
      * @return \Doctrine\ORM\QueryBuilder
      */
     public function getPathQueryBuilder($node)
     {
         $meta = $this->getClassMetadata();
-        if (!$node instanceof $meta->name) {
+        if (!is_a($node, $meta->getName())) {
             throw new InvalidArgumentException('Node is not related to this repository');
         }
         $config = $this->listener->getConfiguration($this->_em, $meta->name);
@@ -187,7 +187,7 @@ class NestedTreeRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @return array - list of Nodes in path
+     * @return array list of Nodes in path
      */
     public function getPath($node)
     {
@@ -207,7 +207,7 @@ class NestedTreeRepository extends AbstractTreeRepository
             ->from($config['useObjectClass'], 'node')
         ;
         if (null !== $node) {
-            if ($node instanceof $meta->name) {
+            if (is_a($node, $meta->getName())) {
                 $wrapped = new EntityWrapper($node, $this->_em);
 
                 $identifierField = $config['tree_id'] ?? $meta->getSingleIdentifierFieldName();
@@ -309,11 +309,11 @@ class NestedTreeRepository extends AbstractTreeRepository
     /**
      * Get tree leafs query builder
      *
-     * @param object $root        - root node in case of root tree is required
-     * @param string $sortByField - field name to sort by
-     * @param string $direction   - sort direction : "ASC" or "DESC"
+     * @param object $root        root node in case of root tree is required
+     * @param string $sortByField field name to sort by
+     * @param string $direction   sort direction : "ASC" or "DESC"
      *
-     * @throws InvalidArgumentException - if input is not valid
+     * @throws InvalidArgumentException if input is not valid
      *
      * @return \Doctrine\ORM\QueryBuilder
      */
@@ -322,8 +322,8 @@ class NestedTreeRepository extends AbstractTreeRepository
         $meta = $this->getClassMetadata();
         $config = $this->listener->getConfiguration($this->_em, $meta->name);
 
-        if (isset($config['root']) && is_null($root)) {
-            if (is_null($root)) {
+        if (isset($config['root']) && null === $root) {
+            if (null === $root) {
                 throw new InvalidArgumentException('If tree has root, getLeafs method requires any node of this tree');
             }
         }
@@ -334,7 +334,7 @@ class NestedTreeRepository extends AbstractTreeRepository
             ->where($qb->expr()->eq('node.'.$config['right'], '1 + node.'.$config['left']))
         ;
         if (isset($config['root'])) {
-            if ($root instanceof $meta->name) {
+            if (is_a($root, $meta->getName())) {
                 $wrapped = new EntityWrapper($root, $this->_em);
                 $rootId = $wrapped->getPropertyValue($config['root']);
                 if (!$rootId) {
@@ -365,9 +365,9 @@ class NestedTreeRepository extends AbstractTreeRepository
     /**
      * Get tree leafs query
      *
-     * @param object $root        - root node in case of root tree is required
-     * @param string $sortByField - field name to sort by
-     * @param string $direction   - sort direction : "ASC" or "DESC"
+     * @param object $root        root node in case of root tree is required
+     * @param string $sortByField field name to sort by
+     * @param string $direction   sort direction : "ASC" or "DESC"
      *
      * @return \Doctrine\ORM\Query
      */
@@ -379,9 +379,9 @@ class NestedTreeRepository extends AbstractTreeRepository
     /**
      * Get list of leaf nodes of the tree
      *
-     * @param object $root        - root node in case of root tree is required
-     * @param string $sortByField - field name to sort by
-     * @param string $direction   - sort direction : "ASC" or "DESC"
+     * @param object $root        root node in case of root tree is required
+     * @param string $sortByField field name to sort by
+     * @param string $direction   sort direction : "ASC" or "DESC"
      *
      * @return array
      */
@@ -394,16 +394,16 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Get the query builder for next siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
-     * @throws \Gedmo\Exception\InvalidArgumentException - if input is invalid
+     * @throws \Gedmo\Exception\InvalidArgumentException if input is invalid
      *
      * @return \Doctrine\ORM\QueryBuilder
      */
     public function getNextSiblingsQueryBuilder($node, $includeSelf = false)
     {
         $meta = $this->getClassMetadata();
-        if (!$node instanceof $meta->name) {
+        if (!is_a($node, $meta->getName())) {
             throw new InvalidArgumentException('Node is not related to this repository');
         }
         $wrapped = new EntityWrapper($node, $this->_em);
@@ -446,7 +446,7 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Get the query for next siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
      * @return \Doctrine\ORM\Query
      */
@@ -459,7 +459,7 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Find the next siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
      * @return array
      */
@@ -472,16 +472,16 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Get query builder for previous siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
-     * @throws \Gedmo\Exception\InvalidArgumentException - if input is invalid
+     * @throws \Gedmo\Exception\InvalidArgumentException if input is invalid
      *
      * @return \Doctrine\ORM\QueryBuilder
      */
     public function getPrevSiblingsQueryBuilder($node, $includeSelf = false)
     {
         $meta = $this->getClassMetadata();
-        if (!$node instanceof $meta->name) {
+        if (!is_a($node, $meta->getName())) {
             throw new InvalidArgumentException('Node is not related to this repository');
         }
         $wrapped = new EntityWrapper($node, $this->_em);
@@ -524,9 +524,9 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Get query for previous siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
-     * @throws \Gedmo\Exception\InvalidArgumentException - if input is invalid
+     * @throws \Gedmo\Exception\InvalidArgumentException if input is invalid
      *
      * @return \Doctrine\ORM\Query
      */
@@ -539,7 +539,7 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Find the previous siblings of the given $node
      *
      * @param object $node
-     * @param bool   $includeSelf - include the node itself
+     * @param bool   $includeSelf include the node itself
      *
      * @return array
      */
@@ -555,15 +555,15 @@ class NestedTreeRepository extends AbstractTreeRepository
      * @param int|bool $number integer - number of positions to shift
      *                         boolean - if "true" - shift till last position
      *
-     * @throws \RuntimeException - if something fails in transaction
+     * @throws \RuntimeException if something fails in transaction
      *
-     * @return bool - true if shifted
+     * @return bool true if shifted
      */
     public function moveDown($node, $number = 1)
     {
         $result = false;
         $meta = $this->getClassMetadata();
-        if ($node instanceof $meta->name) {
+        if (is_a($node, $meta->getName())) {
             $nextSiblings = $this->getNextSiblings($node);
             if ($numSiblings = count($nextSiblings)) {
                 $result = true;
@@ -590,15 +590,15 @@ class NestedTreeRepository extends AbstractTreeRepository
      * @param int|bool $number integer - number of positions to shift
      *                         boolean - true shift till first position
      *
-     * @throws \RuntimeException - if something fails in transaction
+     * @throws \RuntimeException if something fails in transaction
      *
-     * @return bool - true if shifted
+     * @return bool true if shifted
      */
     public function moveUp($node, $number = 1)
     {
         $result = false;
         $meta = $this->getClassMetadata();
-        if ($node instanceof $meta->name) {
+        if (is_a($node, $meta->getName())) {
             $prevSiblings = array_reverse($this->getPrevSiblings($node));
             if ($numSiblings = count($prevSiblings)) {
                 $result = true;
@@ -625,12 +625,12 @@ class NestedTreeRepository extends AbstractTreeRepository
      *
      * @param object $node
      *
-     * @throws \RuntimeException - if something fails in transaction
+     * @throws \RuntimeException if something fails in transaction
      */
     public function removeFromTree($node)
     {
         $meta = $this->getClassMetadata();
-        if ($node instanceof $meta->name) {
+        if (is_a($node, $meta->getName())) {
             $wrapped = new EntityWrapper($node, $this->_em);
             $config = $this->listener->getConfiguration($this->_em, $meta->name);
             $right = $wrapped->getPropertyValue($config['right']);
@@ -647,6 +647,7 @@ class NestedTreeRepository extends AbstractTreeRepository
             }
             // process updates in transaction
             $this->_em->getConnection()->beginTransaction();
+
             try {
                 $parent = $wrapped->getPropertyValue($config['parent']);
                 $parentId = null;
@@ -729,6 +730,7 @@ class NestedTreeRepository extends AbstractTreeRepository
             } catch (\Exception $e) {
                 $this->_em->close();
                 $this->_em->getConnection()->rollback();
+
                 throw new \Gedmo\Exception\RuntimeException('Transaction failed', null, $e);
             }
         } else {
@@ -740,17 +742,17 @@ class NestedTreeRepository extends AbstractTreeRepository
      * Reorders $node's sibling nodes and child nodes,
      * according to the $sortByField and $direction specified
      *
-     * @param object|null $node        - node from which to start reordering the tree; null will reorder everything
-     * @param string      $sortByField - field name to sort by
-     * @param string      $direction   - sort direction : "ASC" or "DESC"
-     * @param bool        $verify      - true to verify tree first
+     * @param object|null $node        node from which to start reordering the tree; null will reorder everything
+     * @param string      $sortByField field name to sort by
+     * @param string      $direction   sort direction : "ASC" or "DESC"
+     * @param bool        $verify      true to verify tree first
      *
      * @return bool|null
      */
     public function reorder($node, $sortByField = null, $direction = 'ASC', $verify = true)
     {
         $meta = $this->getClassMetadata();
-        if ($node instanceof $meta->name || null === $node) {
+        if (null === $node || is_a($node, $meta->getName())) {
             $config = $this->listener->getConfiguration($this->_em, $meta->name);
             if ($verify && is_array($this->verify())) {
                 return false;
@@ -774,9 +776,9 @@ class NestedTreeRepository extends AbstractTreeRepository
     /**
      * Reorders all nodes in the tree according to the $sortByField and $direction specified.
      *
-     * @param string $sortByField - field name to sort by
-     * @param string $direction   - sort direction : "ASC" or "DESC"
-     * @param bool   $verify      - true to verify tree first
+     * @param string $sortByField field name to sort by
+     * @param string $direction   sort direction : "ASC" or "DESC"
+     * @param bool   $verify      true to verify tree first
      */
     public function reorderAll($sortByField = null, $direction = 'ASC', $verify = true)
     {
@@ -788,7 +790,7 @@ class NestedTreeRepository extends AbstractTreeRepository
      * If any error is detected it will return an array
      * with a list of errors found on tree
      *
-     * @return array|bool - true on success,error list on failure
+     * @return array|bool true on success,error list on failure
      */
     public function verify()
     {
@@ -828,7 +830,7 @@ class NestedTreeRepository extends AbstractTreeRepository
         $self = $this;
         $em = $this->_em;
 
-        $doRecover = function ($root, &$count, &$lvl) use ($meta, $config, $self, $em, &$doRecover) {
+        $doRecover = static function ($root, &$count, &$lvl) use ($meta, $config, $self, $em, &$doRecover) {
             $lft = $count++;
             foreach ($self->getChildren($root, true) as $child) {
                 $depth = ($lvl + 1);
@@ -932,7 +934,7 @@ class NestedTreeRepository extends AbstractTreeRepository
             $qb->where($qb->expr()->eq('node.'.$config['root'], ':rid'));
             $qb->setParameter('rid', $rootId);
         }
-        $min = intval($qb->getQuery()->getSingleScalarResult());
+        $min = (int) $qb->getQuery()->getSingleScalarResult();
         $edge = $this->listener->getStrategy($this->_em, $meta->name)->max($this->_em, $config['useObjectClass'], $rootId);
         // check duplicate right and left values
         for ($i = $min; $i <= $edge; ++$i) {
@@ -948,7 +950,7 @@ class NestedTreeRepository extends AbstractTreeRepository
                 $qb->andWhere($qb->expr()->eq('node.'.$config['root'], ':rid'));
                 $qb->setParameter('rid', $rootId);
             }
-            $count = intval($qb->getQuery()->getSingleScalarResult());
+            $count = (int) $qb->getQuery()->getSingleScalarResult();
             if (1 !== $count) {
                 if (0 === $count) {
                     $errors[] = "index [{$i}], missing".($root ? ' on tree root: '.$rootId : '');
@@ -1039,7 +1041,7 @@ class NestedTreeRepository extends AbstractTreeRepository
                     $qb->andWhere($qb->expr()->eq('node.'.$config['root'], ':rid'));
                     $qb->setParameter('rid', $rootId);
                 }
-                if ($count = intval($qb->getQuery()->getSingleScalarResult())) {
+                if ($count = (int) $qb->getQuery()->getSingleScalarResult()) {
                     $errors[] = "node [{$id}] parent field is blank, but it has a parent";
                 }
             }

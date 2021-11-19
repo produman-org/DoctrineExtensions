@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture\Genealogy;
+namespace Gedmo\Tests\Tree\Fixture\Genealogy;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -36,7 +36,7 @@ abstract class Person
     /**
      * @ORM\OneToMany(targetEntity="Person", mappedBy="parent")
      *
-     * @var Doctrine\Common\Collections\ArrayCollection
+     * @var \Doctrine\Common\Collections\ArrayCollection
      */
     protected $children;
 
@@ -77,7 +77,7 @@ abstract class Person
     /**
      * @return Person
      */
-    public function setParent(Person $parent)
+    public function setParent(self $parent)
     {
         $this->parent = $parent;
 

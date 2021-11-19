@@ -85,7 +85,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
         $meta = $this->getClassMetadata();
 
         if (is_object($node)) {
-            if (!($node instanceof $meta->name)) {
+            if (!is_a($node, $meta->getName())) {
                 throw new InvalidArgumentException('Node is not related to this repository');
             }
 
@@ -115,7 +115,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
             ->find($meta->name);
         $regex = false;
 
-        if (is_object($node) && $node instanceof $meta->name) {
+        if (is_a($node, $meta->getName())) {
             $node = new MongoDocumentWrapper($node, $this->dm);
             $nodePath = preg_quote($node->getPropertyValue($config['path']));
 
@@ -138,7 +138,7 @@ class MaterializedPathRepository extends AbstractTreeRepository
             $qb->field($config['path'])->equals(new Regex($regex));
         }
 
-        $qb->sort(is_null($sortByField) ? $config['path'] : $sortByField, 'asc' === $direction ? 'asc' : 'desc');
+        $qb->sort(null === $sortByField ? $config['path'] : $sortByField, 'asc' === $direction ? 'asc' : 'desc');
 
         return $qb;
     }

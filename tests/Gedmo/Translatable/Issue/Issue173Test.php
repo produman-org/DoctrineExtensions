@@ -1,13 +1,16 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\Issue173\Article;
+use Gedmo\Tests\Translatable\Fixture\Issue173\Category;
+use Gedmo\Tests\Translatable\Fixture\Issue173\Product;
+use Gedmo\Translatable\Entity\Translation;
+use Gedmo\Translatable\Hydrator\ORM\ObjectHydrator;
 use Gedmo\Translatable\Query\TreeWalker\TranslationWalker;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\Issue173\Article;
-use Translatable\Fixture\Issue173\Category;
-use Translatable\Fixture\Issue173\Product;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -19,12 +22,12 @@ use Translatable\Fixture\Issue173\Product;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue173Test extends BaseTestCaseORM
+final class Issue173Test extends BaseTestCaseORM
 {
-    public const CATEGORY = 'Translatable\\Fixture\\Issue173\\Category';
-    public const ARTICLE = 'Translatable\\Fixture\\Issue173\\Article';
-    public const PRODUCT = 'Translatable\\Fixture\\Issue173\\Product';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const CATEGORY = Category::class;
+    public const ARTICLE = Article::class;
+    public const PRODUCT = Product::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
 
@@ -38,7 +41,7 @@ class Issue173Test extends BaseTestCaseORM
         $this->translatableListener->setDefaultLocale('en');
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
 
         $this->populate();
     }
@@ -47,11 +50,11 @@ class Issue173Test extends BaseTestCaseORM
     {
         $this->em->getConfiguration()->addCustomHydrationMode(
             TranslationWalker::HYDRATE_OBJECT_TRANSLATION,
-            'Gedmo\\Translatable\\Hydrator\\ORM\\ObjectHydrator'
+            ObjectHydrator::class
         );
 
         $categories = $this->getCategoriesThatHasNoAssociations();
-        $this->assertEquals(count($categories), 1, '$category3 has no associations');
+        static::assertCount(1, $categories, '$category3 has no associations');
     }
 
     public function getCategoriesThatHasNoAssociations()
@@ -80,7 +83,7 @@ class Issue173Test extends BaseTestCaseORM
 
         return $query->getQuery()->setHint(
             \Doctrine\ORM\Query::HINT_CUSTOM_OUTPUT_WALKER,
-            'Gedmo\\Translatable\\Query\\TreeWalker\\TranslationWalker'
+            TranslationWalker::class
         )->getResult();
     }
 

@@ -1,6 +1,8 @@
 <?php
 
-namespace Gedmo\Uploadable\FileInfo;
+namespace Gedmo\Tests\Uploadable\FileInfo;
+
+use Gedmo\Uploadable\FileInfo\FileInfoArray;
 
 /**
  * These are tests for the FileInfoArray class of the Uploadable behavior
@@ -12,7 +14,7 @@ namespace Gedmo\Uploadable\FileInfo;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class FileInfoArrayTest extends \PHPUnit\Framework\TestCase
+final class FileInfoArrayTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstructorIfKeysAreNotValidOrSomeAreMissingThrowException()
     {

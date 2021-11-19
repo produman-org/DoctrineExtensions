@@ -1,11 +1,11 @@
 <?php
 
-namespace Wrapper;
+namespace Gedmo\Tests\Wrapper;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Wrapper\Fixture\Document\Article;
 use Gedmo\Tool\Wrapper\MongoDocumentWrapper;
-use Tool\BaseTestCaseMongoODM;
-use Wrapper\Fixture\Document\Article;
 
 /**
  * Mongo Document wrapper tests
@@ -16,9 +16,9 @@ use Wrapper\Fixture\Document\Article;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
+final class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Wrapper\\Fixture\\Document\\Article';
+    public const ARTICLE = Article::class;
     private $articleId;
 
     protected function setUp(): void
@@ -31,29 +31,29 @@ class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
     public function testManaged()
     {
         $test = $this->dm->find(self::ARTICLE, $this->articleId);
-        $this->assertInstanceOf(self::ARTICLE, $test);
+        static::assertInstanceOf(self::ARTICLE, $test);
         $wrapped = new MongoDocumentWrapper($test, $this->dm);
 
-        $this->assertEquals($this->articleId, $wrapped->getIdentifier());
-        $this->assertEquals('test', $wrapped->getPropertyValue('title'));
+        static::assertSame($this->articleId, $wrapped->getIdentifier());
+        static::assertSame('test', $wrapped->getPropertyValue('title'));
         $wrapped->setPropertyValue('title', 'changed');
-        $this->assertEquals('changed', $wrapped->getPropertyValue('title'));
+        static::assertSame('changed', $wrapped->getPropertyValue('title'));
 
-        $this->assertTrue($wrapped->hasValidIdentifier());
+        static::assertTrue($wrapped->hasValidIdentifier());
     }
 
     public function testProxy()
     {
         $this->dm->clear();
         $test = $this->dm->getReference(self::ARTICLE, $this->articleId);
-        $this->assertStringStartsWith('Proxy', get_class($test));
-        $this->assertInstanceOf(self::ARTICLE, $test);
+        static::assertStringStartsWith('Proxy', get_class($test));
+        static::assertInstanceOf(self::ARTICLE, $test);
         $wrapped = new MongoDocumentWrapper($test, $this->dm);
 
         $id = $wrapped->getIdentifier(false);
-        $this->assertEquals($this->articleId, $id);
+        static::assertSame($this->articleId, $id);
 
-        $this->assertEquals('test', $wrapped->getPropertyValue('title'));
+        static::assertSame('test', $wrapped->getPropertyValue('title'));
     }
 
     public function testDetachedEntity()
@@ -62,8 +62,8 @@ class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
         $this->dm->clear();
         $wrapped = new MongoDocumentWrapper($test, $this->dm);
 
-        $this->assertEquals($this->articleId, $wrapped->getIdentifier());
-        $this->assertEquals('test', $wrapped->getPropertyValue('title'));
+        static::assertSame($this->articleId, $wrapped->getIdentifier());
+        static::assertSame('test', $wrapped->getPropertyValue('title'));
     }
 
     public function testDetachedProxy()
@@ -72,8 +72,8 @@ class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
         $this->dm->clear();
         $wrapped = new MongoDocumentWrapper($test, $this->dm);
 
-        $this->assertEquals($this->articleId, $wrapped->getIdentifier());
-        $this->assertEquals('test', $wrapped->getPropertyValue('title'));
+        static::assertSame($this->articleId, $wrapped->getIdentifier());
+        static::assertSame('test', $wrapped->getPropertyValue('title'));
     }
 
     public function testSomeFunctions()
@@ -82,9 +82,9 @@ class MongoDocumentWrapperTest extends BaseTestCaseMongoODM
         $wrapped = new MongoDocumentWrapper($test, $this->dm);
 
         $wrapped->populate(['title' => 'test']);
-        $this->assertEquals('test', $wrapped->getPropertyValue('title'));
+        static::assertSame('test', $wrapped->getPropertyValue('title'));
 
-        $this->assertFalse($wrapped->hasValidIdentifier());
+        static::assertFalse($wrapped->hasValidIdentifier());
     }
 
     private function populate()

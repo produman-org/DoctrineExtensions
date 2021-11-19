@@ -174,7 +174,7 @@ class Closure implements Strategy
      */
     public function processPrePersist($em, $node)
     {
-        $this->pendingChildNodeInserts[spl_object_hash($em)][spl_object_hash($node)] = $node;
+        $this->pendingChildNodeInserts[spl_object_id($em)][spl_object_id($node)] = $node;
     }
 
     /**
@@ -241,7 +241,7 @@ class Closure implements Strategy
     public function processPostPersist($em, $entity, AdapterInterface $ea)
     {
         $uow = $em->getUnitOfWork();
-        $emHash = spl_object_hash($em);
+        $emHash = spl_object_id($em);
 
         while ($node = array_shift($this->pendingChildNodeInserts[$emHash])) {
             $meta = $em->getClassMetadata(get_class($node));
@@ -288,7 +288,7 @@ class Closure implements Strategy
                 }
             } elseif (isset($config['level'])) {
                 $uow->scheduleExtraUpdate($node, [$config['level'] => [null, 1]]);
-                $ea->setOriginalObjectProperty($uow, spl_object_hash($node), $config['level'], 1);
+                $ea->setOriginalObjectProperty($uow, $node, $config['level'], 1);
                 $levelProp = $meta->getReflectionProperty($config['level']);
                 $levelProp->setValue($node, 1);
             }
@@ -347,7 +347,7 @@ class Closure implements Strategy
             $sql .= 'WHERE c.descendant IN (?) ';
             $sql .= 'GROUP BY c.descendant';
 
-            $levelsAssoc = $em->getConnection()->executeQuery($sql, [array_keys($this->pendingNodesLevelProcess)], [$type])->fetchAll(\PDO::FETCH_NUM);
+            $levelsAssoc = $em->getConnection()->executeQuery($sql, [array_keys($this->pendingNodesLevelProcess)], [$type])->fetchAllNumeric();
 
             //create key pair array with resultset
             $levels = [];
@@ -368,7 +368,7 @@ class Closure implements Strategy
                     ]]
                 );
                 $levelProp->setValue($node, $level);
-                $uow->setOriginalEntityProperty(spl_object_hash($node), $config['level'], $level);
+                $uow->setOriginalEntityProperty(spl_object_id($node), $config['level'], $level);
             }
 
             $this->pendingNodesLevelProcess = [];
@@ -391,7 +391,7 @@ class Closure implements Strategy
             $parent = $changeSet[$config['parent']][1] ? AbstractWrapper::wrap($changeSet[$config['parent']][1], $em) : null;
 
             if ($parent && !$parent->getIdentifier()) {
-                $this->pendingNodeUpdates[spl_object_hash($node)] = [
+                $this->pendingNodeUpdates[spl_object_id($node)] = [
                     'node' => $node,
                     'oldParent' => $changeSet[$config['parent']][0],
                 ];
@@ -435,11 +435,11 @@ class Closure implements Strategy
             $subQuery .= " JOIN {$table} c2 ON c1.descendant = c2.descendant";
             $subQuery .= ' WHERE c1.ancestor = :nodeId AND c2.depth > c1.depth';
 
-            $ids = $conn->executeQuery($subQuery, compact('nodeId'))->fetchAll(\PDO::FETCH_COLUMN);
-            if ($ids) {
+            $ids = $conn->executeQuery($subQuery, compact('nodeId'))->fetchFirstColumn();
+            if ([] !== $ids) {
                 // using subquery directly, sqlite acts unfriendly
                 $query = "DELETE FROM {$table} WHERE id IN (".implode(', ', $ids).')';
-                if (!empty($ids) && !$conn->executeQuery($query)) {
+                if (0 === $conn->executeStatement($query)) {
                     throw new RuntimeException('Failed to remove old closures');
                 }
             }
@@ -453,7 +453,7 @@ class Closure implements Strategy
             $query .= ' WHERE c1.descendant = :parentId';
             $query .= ' AND c2.ancestor = :nodeId';
 
-            $closures = $conn->fetchAll($query, compact('nodeId', 'parentId'));
+            $closures = $conn->executeQuery($query, compact('nodeId', 'parentId'))->fetchAllAssociative();
 
             foreach ($closures as $closure) {
                 if (!$conn->insert($table, $closure)) {

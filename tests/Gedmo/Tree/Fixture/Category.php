@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -76,7 +76,7 @@ class Category implements NodeInterface
         return $this->title;
     }
 
-    public function setParent(Category $parent)
+    public function setParent(self $parent)
     {
         $this->parentId = $parent;
     }

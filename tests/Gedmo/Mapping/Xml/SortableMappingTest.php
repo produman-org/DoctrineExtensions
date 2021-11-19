@@ -1,6 +1,6 @@
 <?php
 
-namespace Gedmo\Mapping\Xml;
+namespace Gedmo\Tests\Mapping\Xml;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
@@ -8,7 +8,9 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Gedmo\Sortable\SortableListener;
-use Tool\BaseTestCaseOM;
+use Gedmo\Tests\Mapping\Fixture\SortableGroup;
+use Gedmo\Tests\Mapping\Fixture\Xml\Sortable;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
 
 /**
  * These are mapping extension tests
@@ -19,7 +21,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class SortableMappingTest extends BaseTestCaseOM
+final class SortableMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -31,7 +33,7 @@ class SortableMappingTest extends BaseTestCaseOM
      */
     private $sortable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -41,30 +43,30 @@ class SortableMappingTest extends BaseTestCaseOM
         $xmlDriver = new XmlDriver(__DIR__.'/../Driver/Xml');
 
         $chain = new DriverChain();
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
-        $chain->addDriver($annotationDriver, 'Mapping\Fixture');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
+        $chain->addDriver($annotationDriver, 'Gedmo\Tests\Mapping\Fixture');
 
         $this->sortable = new SortableListener();
         $this->evm = new EventManager();
         $this->evm->addEventSubscriber($this->sortable);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Mapping\Fixture\Xml\Sortable',
-            'Mapping\Fixture\SortableGroup',
+            Sortable::class,
+            SortableGroup::class,
         ], $chain);
     }
 
     public function testSluggableMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\Sortable');
+        $meta = $this->em->getClassMetadata(Sortable::class);
         $config = $this->sortable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('position', $config);
-        $this->assertEquals('position', $config['position']);
-        $this->assertArrayHasKey('groups', $config);
-        $this->assertCount(3, $config['groups']);
-        $this->assertEquals('grouping', $config['groups'][0]);
-        $this->assertEquals('sortable_group', $config['groups'][1]);
-        $this->assertEquals('sortable_groups', $config['groups'][2]);
+        static::assertArrayHasKey('position', $config);
+        static::assertSame('position', $config['position']);
+        static::assertArrayHasKey('groups', $config);
+        static::assertCount(3, $config['groups']);
+        static::assertSame('grouping', $config['groups'][0]);
+        static::assertSame('sortable_group', $config['groups'][1]);
+        static::assertSame('sortable_groups', $config['groups'][2]);
     }
 }

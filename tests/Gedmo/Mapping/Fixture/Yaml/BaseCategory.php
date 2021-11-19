@@ -1,6 +1,6 @@
 <?php
 
-namespace Mapping\Fixture\Yaml;
+namespace Gedmo\Tests\Mapping\Fixture\Yaml;
 
 /**
  * @MappedSupperClass
@@ -28,7 +28,7 @@ class BaseCategory
     private $rooted;
 
     /**
-     * @var datetime
+     * @var \DateTime
      *
      * @Column(name="created", type="datetime")
      */

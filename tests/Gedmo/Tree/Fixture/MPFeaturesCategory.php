@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -82,7 +82,7 @@ class MPFeaturesCategory
         return $this->title;
     }
 
-    public function setParent(MPFeaturesCategory $parent = null)
+    public function setParent(self $parent = null)
     {
         $this->parentId = $parent;
     }

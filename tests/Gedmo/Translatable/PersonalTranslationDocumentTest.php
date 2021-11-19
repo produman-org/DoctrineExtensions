@@ -1,11 +1,12 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseMongoODM;
-use Translatable\Fixture\Document\Personal\Article;
-use Translatable\Fixture\Document\Personal\ArticleTranslation;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Translatable\Fixture\Document\Personal\Article;
+use Gedmo\Tests\Translatable\Fixture\Document\Personal\ArticleTranslation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -16,10 +17,10 @@ use Translatable\Fixture\Document\Personal\ArticleTranslation;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class PersonalTranslationDocumentTest extends BaseTestCaseMongoODM
+final class PersonalTranslationDocumentTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Translatable\Fixture\Document\Personal\Article';
-    public const TRANSLATION = 'Translatable\Fixture\Document\Personal\ArticleTranslation';
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = ArticleTranslation::class;
 
     private $translatableListener;
     private $id;
@@ -46,7 +47,7 @@ class PersonalTranslationDocumentTest extends BaseTestCaseMongoODM
         $article = $this->dm->getRepository(self::ARTICLE)->find($this->id);
         $translations = $article->getTranslations();
 
-        $this->assertCount(2, $translations);
+        static::assertCount(2, $translations);
     }
 
     /**
@@ -58,7 +59,7 @@ class PersonalTranslationDocumentTest extends BaseTestCaseMongoODM
         $this->translatableListener->setTranslatableLocale('lt');
 
         $article = $this->dm->getRepository(self::ARTICLE)->find($this->id);
-        $this->assertEquals('lt', $article->getTitle());
+        static::assertSame('lt', $article->getTitle());
     }
 
     private function populate()

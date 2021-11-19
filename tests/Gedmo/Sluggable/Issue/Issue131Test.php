@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Issue131\Article;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Issue131\Article;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Sluggable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue131Test extends BaseTestCaseORM
+final class Issue131Test extends BaseTestCaseORM
 {
-    public const TARGET = 'Sluggable\\Fixture\\Issue131\\Article';
+    public const TARGET = Article::class;
 
     protected function setUp(): void
     {
@@ -37,7 +38,7 @@ class Issue131Test extends BaseTestCaseORM
         $this->em->persist($test);
         $this->em->flush();
 
-        $this->assertNull($test->getSlug());
+        static::assertNull($test->getSlug());
 
         $test2 = new Article();
         $test2->setTitle('');
@@ -45,7 +46,7 @@ class Issue131Test extends BaseTestCaseORM
         $this->em->persist($test2);
         $this->em->flush();
 
-        $this->assertNull($test2->getSlug());
+        static::assertNull($test2->getSlug());
     }
 
     /**
@@ -59,7 +60,7 @@ class Issue131Test extends BaseTestCaseORM
         $this->em->persist($article);
         $this->em->flush();
 
-        $this->assertEquals('0', $article->getSlug());
+        static::assertSame('0', $article->getSlug());
     }
 
     protected function getUsedEntityFixtures()

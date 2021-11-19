@@ -1,10 +1,12 @@
 <?php
 
-namespace Gedmo\Timestampable;
+namespace Gedmo\Tests\Timestampable;
 
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Gedmo\Mapping\ExtensionMetadataFactory;
+use Gedmo\Tests\Mapping\Fixture\Yaml\Category;
+use Gedmo\Timestampable\TimestampableListener;
 
 /**
  * These are mapping tests for timestampable extension
@@ -15,12 +17,12 @@ use Gedmo\Mapping\ExtensionMetadataFactory;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TimestampableMappingTest extends \PHPUnit\Framework\TestCase
+final class TimestampableMappingTest extends \PHPUnit\Framework\TestCase
 {
-    public const TEST_YAML_ENTITY_CLASS = 'Mapping\Fixture\Yaml\Category';
+    public const TEST_YAML_ENTITY_CLASS = Category::class;
     private $em;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache());
@@ -30,7 +32,7 @@ class TimestampableMappingTest extends \PHPUnit\Framework\TestCase
         $chainDriverImpl = new DriverChain();
         $chainDriverImpl->addDriver(
             new YamlDriver([__DIR__.'/Driver/Yaml']),
-            'Mapping\Fixture\Yaml'
+            'Gedmo\Tests\Mapping\Fixture\Yaml'
         );
         $config->setMetadataDriverImpl($chainDriverImpl);
 
@@ -54,15 +56,15 @@ class TimestampableMappingTest extends \PHPUnit\Framework\TestCase
             'Gedmo\Timestampable'
         );
         $config = $this->em->getMetadataFactory()->getCacheDriver()->fetch($cacheId);
-        $this->assertArrayHasKey('create', $config);
-        $this->assertEquals('created', $config['create'][0]);
-        $this->assertArrayHasKey('update', $config);
-        $this->assertEquals('updated', $config['update'][0]);
-        $this->assertArrayHasKey('change', $config);
+        static::assertArrayHasKey('create', $config);
+        static::assertSame('created', $config['create'][0]);
+        static::assertArrayHasKey('update', $config);
+        static::assertSame('updated', $config['update'][0]);
+        static::assertArrayHasKey('change', $config);
         $onChange = $config['change'][0];
 
-        $this->assertEquals('changed', $onChange['field']);
-        $this->assertEquals('title', $onChange['trackedField']);
-        $this->assertEquals('Test', $onChange['value']);
+        static::assertSame('changed', $onChange['field']);
+        static::assertSame('title', $onChange['trackedField']);
+        static::assertSame('Test', $onChange['value']);
     }
 }

@@ -85,14 +85,14 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Get an event adapter to handle event specific
      * methods
      *
-     * @throws \Gedmo\Exception\InvalidArgumentException - if event is not recognized
+     * @throws \Gedmo\Exception\InvalidArgumentException if event is not recognized
      *
      * @return \Gedmo\Mapping\Event\AdapterInterface
      */
     protected function getEventAdapter(EventArgs $args)
     {
         $class = get_class($args);
-        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], ['ODM', 'ORM'])) {
+        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], ['ODM', 'ORM'], true)) {
             if (!isset($this->adapters[$m[1]])) {
                 $adapterClass = $this->getNamespace().'\\Mapping\\Event\\Adapter\\'.$m[1];
                 if (!class_exists($adapterClass)) {
@@ -103,9 +103,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
             $this->adapters[$m[1]]->setEventArgs($args);
 
             return $this->adapters[$m[1]];
-        } else {
-            throw new \Gedmo\Exception\InvalidArgumentException('Event mapper does not support event arg class: '.$class);
         }
+
+        throw new \Gedmo\Exception\InvalidArgumentException('Event mapper does not support event arg class: '.$class);
     }
 
     /**
@@ -137,7 +137,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
                     }
                 }
 
-                $objectClass = isset($config['useObjectClass']) ? $config['useObjectClass'] : $class;
+                $objectClass = $config['useObjectClass'] ?? $class;
                 if ($objectClass !== $class) {
                     $this->getConfiguration($objectManager, $objectClass);
                 }
@@ -154,9 +154,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
      */
     public function getExtensionMetadataFactory(ObjectManager $objectManager)
     {
-        $oid = spl_object_hash($objectManager);
+        $oid = spl_object_id($objectManager);
         if (!isset($this->extensionMetadataFactory[$oid])) {
-            if (is_null($this->annotationReader)) {
+            if (null === $this->annotationReader) {
                 // create default annotation reader for extensions
                 $this->annotationReader = $this->getDefaultAnnotationReader();
             }
@@ -179,7 +179,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
      *     getPropertyAnnotations([reflectionProperty])
      *     getPropertyAnnotation([reflectionProperty], [name])
      *
-     * @param Reader $reader - annotation reader class
+     * @param Reader $reader annotation reader class
      */
     public function setAnnotationReader($reader)
     {
@@ -197,6 +197,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
     public function loadMetadataForObjectClass(ObjectManager $objectManager, $metadata)
     {
         $factory = $this->getExtensionMetadataFactory($objectManager);
+
         try {
             $config = $factory->getExtensionMetadata($metadata);
         } catch (\ReflectionException $e) {

@@ -1,12 +1,13 @@
 <?php
 
-namespace Gedmo\Tree;
+namespace Gedmo\Tests\Timestampable;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Tests\Timestampable\Fixture\SupperClassExtension;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 use Gedmo\Timestampable\TimestampableListener;
+use Gedmo\Translatable\Entity\Translation;
 use Gedmo\Translatable\TranslatableListener;
-use Timestampable\Fixture\SupperClassExtension;
-use Tool\BaseTestCaseORM;
 
 /**
  * These are tests for Timestampable behavior
@@ -17,10 +18,10 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class ProtectedPropertySupperclassTest extends BaseTestCaseORM
+final class ProtectedPropertySupperclassTest extends BaseTestCaseORM
 {
-    public const SUPERCLASS = 'Timestampable\\Fixture\\SupperClassExtension';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const SUPERCLASS = SupperClassExtension::class;
+    public const TRANSLATION = Translation::class;
 
     protected function setUp(): void
     {
@@ -32,7 +33,7 @@ class ProtectedPropertySupperclassTest extends BaseTestCaseORM
         $evm->addEventSubscriber($translatableListener);
         $evm->addEventSubscriber(new TimestampableListener());
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     public function testProtectedProperty()
@@ -47,9 +48,9 @@ class ProtectedPropertySupperclassTest extends BaseTestCaseORM
 
         $repo = $this->em->getRepository(self::TRANSLATION);
         $translations = $repo->findTranslations($test);
-        $this->assertCount(0, $translations);
+        static::assertCount(0, $translations);
 
-        $this->assertNotNull($test->getCreatedAt());
+        static::assertNotNull($test->getCreatedAt());
     }
 
     protected function getUsedEntityFixtures()

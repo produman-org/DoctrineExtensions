@@ -1,21 +1,22 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Prefix;
+use Gedmo\Tests\Sluggable\Fixture\PrefixWithTreeHandler;
+use Gedmo\Tests\Sluggable\Fixture\Suffix;
+use Gedmo\Tests\Sluggable\Fixture\SuffixWithTreeHandler;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 use Gedmo\Tree\TreeListener;
-use Sluggable\Fixture\Prefix;
-use Sluggable\Fixture\PrefixWithTreeHandler;
-use Sluggable\Fixture\Suffix;
-use Sluggable\Fixture\SuffixWithTreeHandler;
-use Tool\BaseTestCaseORM;
 
-class SluggablePrefixSuffixTest extends BaseTestCaseORM
+final class SluggablePrefixSuffixTest extends BaseTestCaseORM
 {
-    public const PREFIX = 'Sluggable\\Fixture\\Prefix';
-    public const SUFFIX = 'Sluggable\\Fixture\\Suffix';
-    public const SUFFIX_TREE = 'Sluggable\\Fixture\\SuffixWithTreeHandler';
-    public const PREFIX_TREE = 'Sluggable\\Fixture\\PrefixWithTreeHandler';
+    public const PREFIX = Prefix::class;
+    public const SUFFIX = Suffix::class;
+    public const SUFFIX_TREE = SuffixWithTreeHandler::class;
+    public const PREFIX_TREE = PrefixWithTreeHandler::class;
 
     protected function setUp(): void
     {
@@ -28,9 +29,6 @@ class SluggablePrefixSuffixTest extends BaseTestCaseORM
         $this->getMockSqliteEntityManager($evm);
     }
 
-    /**
-     * @test
-     */
     public function testPrefix()
     {
         $foo = new Prefix();
@@ -38,12 +36,9 @@ class SluggablePrefixSuffixTest extends BaseTestCaseORM
         $this->em->persist($foo);
         $this->em->flush();
 
-        $this->assertEquals('test-foo', $foo->getSlug());
+        static::assertSame('test-foo', $foo->getSlug());
     }
 
-    /**
-     * @test
-     */
     public function testSuffix()
     {
         $foo = new Suffix();
@@ -51,12 +46,9 @@ class SluggablePrefixSuffixTest extends BaseTestCaseORM
         $this->em->persist($foo);
         $this->em->flush();
 
-        $this->assertEquals('foo.test', $foo->getSlug());
+        static::assertSame('foo.test', $foo->getSlug());
     }
 
-    /**
-     * @test
-     */
     public function testNoDuplicateSuffixes()
     {
         $foo = new SuffixWithTreeHandler();
@@ -75,12 +67,9 @@ class SluggablePrefixSuffixTest extends BaseTestCaseORM
         $this->em->persist($baz);
         $this->em->flush();
 
-        $this->assertEquals('foo.test/bar.test/baz.test', $baz->getSlug());
+        static::assertSame('foo.test/bar.test/baz.test', $baz->getSlug());
     }
 
-    /**
-     * @test
-     */
     public function testNoDuplicatePrefixes()
     {
         $foo = new PrefixWithTreeHandler();
@@ -99,7 +88,7 @@ class SluggablePrefixSuffixTest extends BaseTestCaseORM
         $this->em->persist($baz);
         $this->em->flush();
 
-        $this->assertEquals('test.foo/test.bar/test.baz', $baz->getSlug());
+        static::assertSame('test.foo/test.bar/test.baz', $baz->getSlug());
     }
 
     /**

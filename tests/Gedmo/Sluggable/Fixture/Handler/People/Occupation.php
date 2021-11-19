@@ -1,7 +1,9 @@
 <?php
 
-namespace Sluggable\Fixture\Handler\People;
+namespace Gedmo\Tests\Sluggable\Fixture\Handler\People;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
@@ -30,7 +32,7 @@ class Occupation
      *          @Gedmo\SlugHandlerOption(name="separator", value="/")
      *      }),
      *      @Gedmo\SlugHandler(class="Gedmo\Sluggable\Handler\InversedRelativeSlugHandler", options={
-     *          @Gedmo\SlugHandlerOption(name="relationClass", value="Sluggable\Fixture\Handler\People\Person"),
+     *          @Gedmo\SlugHandlerOption(name="relationClass", value="Gedmo\Tests\Sluggable\Fixture\Handler\People\Person"),
      *          @Gedmo\SlugHandlerOption(name="mappedBy", value="occupation"),
      *          @Gedmo\SlugHandlerOption(name="inverseSlugField", value="slug")
      *      })
@@ -45,6 +47,11 @@ class Occupation
      * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $parent;
+
+    /**
+     * @var Collection<int, self>
+     */
+    private $children;
 
     /**
      * @Gedmo\TreeLeft
@@ -70,7 +77,12 @@ class Occupation
      */
     private $level;
 
-    public function setParent(Occupation $parent = null)
+    public function __construct()
+    {
+        $this->children = new ArrayCollection();
+    }
+
+    public function setParent(self $parent = null)
     {
         $this->parent = $parent;
     }

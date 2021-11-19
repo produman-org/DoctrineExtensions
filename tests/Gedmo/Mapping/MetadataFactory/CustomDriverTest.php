@@ -1,8 +1,11 @@
 <?php
 
+namespace Gedmo\Tests\Mapping\MetadataFactory;
+
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
-use Mapping\Fixture\Unmapped\Timestampable;
+use Gedmo\Tests\Mapping\Fixture\Unmapped\Timestampable;
 
 /**
  * These are mapping tests for tree extension
@@ -13,9 +16,19 @@ use Mapping\Fixture\Unmapped\Timestampable;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class CustomDriverTest extends \PHPUnit\Framework\TestCase
+final class CustomDriverTest extends \PHPUnit\Framework\TestCase
 {
-    public function setUp(): void
+    /**
+     * @var Timestampable
+     */
+    private $timestampable;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $em;
+
+    protected function setUp(): void
     {
         $config = new \Doctrine\ORM\Configuration();
         $config->setProxyDir(TESTS_TEMP_DIR);
@@ -36,7 +49,7 @@ class CustomDriverTest extends \PHPUnit\Framework\TestCase
         $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($this->em);
         $schemaTool->dropSchema([]);
         $schemaTool->createSchema([
-            $this->em->getClassMetadata('Mapping\Fixture\Unmapped\Timestampable'),
+            $this->em->getClassMetadata(Timestampable::class),
         ]);
     }
 
@@ -48,20 +61,20 @@ class CustomDriverTest extends \PHPUnit\Framework\TestCase
         // driver falls back to annotation driver
         $conf = $this->timestampable->getConfiguration(
             $this->em,
-            'Mapping\Fixture\Unmapped\Timestampable'
+            Timestampable::class
         );
-        $this->assertTrue(isset($conf['create']));
+        static::assertTrue(isset($conf['create']));
 
         $test = new Timestampable();
         $this->em->persist($test);
         $this->em->flush();
 
         $id = $this->em
-            ->getClassMetadata('Mapping\Fixture\Unmapped\Timestampable')
+            ->getClassMetadata(Timestampable::class)
             ->getReflectionProperty('id')
             ->getValue($test)
         ;
-        $this->assertFalse(empty($id));
+        static::assertNotEmpty($id);
     }
 }
 
@@ -69,12 +82,12 @@ class CustomDriver implements MappingDriver
 {
     public function getAllClassNames()
     {
-        return ['Mapping\Fixture\Unmapped\Timestampable'];
+        return [Timestampable::class];
     }
 
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
-        if ('Mapping\Fixture\Unmapped\Timestampable' === $className) {
+        if ('Gedmo\Tests\Mapping\Fixture\Unmapped\Timestampable' === $className) {
             $id = [];
             $id['fieldName'] = 'id';
             $id['type'] = 'integer';

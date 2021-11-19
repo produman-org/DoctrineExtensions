@@ -2,10 +2,13 @@
 
 namespace Gedmo\Translatable\Mapping\Event\Adapter;
 
-use Doctrine\MongoDB\Cursor;
+use Doctrine\ODM\MongoDB\Iterator\Iterator;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Doctrine\ODM\MongoDB\Types\Type;
 use Gedmo\Mapping\Event\Adapter\ODM as BaseAdapterODM;
 use Gedmo\Tool\Wrapper\AbstractWrapper;
+use Gedmo\Translatable\Document\MappedSuperclass\AbstractPersonalTranslation;
+use Gedmo\Translatable\Document\Translation;
 use Gedmo\Translatable\Mapping\Event\TranslatableAdapter;
 
 /**
@@ -26,7 +29,7 @@ final class ODM extends BaseAdapterODM implements TranslatableAdapter
             ->getObjectManager()
             ->getClassMetadata($translationClassName)
             ->getReflectionClass()
-            ->isSubclassOf('Gedmo\Translatable\Document\MappedSuperclass\AbstractPersonalTranslation')
+            ->isSubclassOf(AbstractPersonalTranslation::class)
         ;
     }
 
@@ -35,7 +38,7 @@ final class ODM extends BaseAdapterODM implements TranslatableAdapter
      */
     public function getDefaultTranslationClass()
     {
-        return 'Gedmo\\Translatable\\Document\\Translation';
+        return Translation::class;
     }
 
     /**
@@ -88,7 +91,7 @@ final class ODM extends BaseAdapterODM implements TranslatableAdapter
         }
         $q->setHydrate(false);
         $result = $q->execute();
-        if ($result instanceof Cursor) {
+        if ($result instanceof Iterator) {
             $result = $result->toArray();
         }
 
@@ -196,8 +199,6 @@ final class ODM extends BaseAdapterODM implements TranslatableAdapter
 
     private function getType($type)
     {
-        // due to change in ODM beta 9
-        return class_exists('Doctrine\ODM\MongoDB\Types\Type') ? \Doctrine\ODM\MongoDB\Types\Type::getType($type)
-            : \Doctrine\ODM\MongoDB\Mapping\Types\Type::getType($type);
+        return Type::getType($type);
     }
 }

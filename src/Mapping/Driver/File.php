@@ -2,7 +2,7 @@
 
 namespace Gedmo\Mapping\Driver;
 
-use Doctrine\ORM\Mapping\Driver\AbstractFileDriver;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\Driver\FileDriver;
 use Doctrine\Persistence\Mapping\Driver\FileLocator;
 use Gedmo\Mapping\Driver;
@@ -35,6 +35,13 @@ abstract class File implements Driver
      */
     protected $_originalDriver = null;
 
+    /**
+     * @deprecated since gedmo/doctrine-extensions 3.3, will be removed in version 4.0.
+     *
+     * @var string[]
+     */
+    protected $_paths = [];
+
     public function setLocator(FileLocator $locator)
     {
         $this->locator = $locator;
@@ -43,7 +50,9 @@ abstract class File implements Driver
     /**
      * Set the paths for file lookup
      *
-     * @param array $paths
+     * @deprecated since gedmo/doctrine-extensions 3.3, will be removed in version 4.0.
+     *
+     * @param string[] $paths
      *
      * @return void
      */
@@ -85,14 +94,14 @@ abstract class File implements Driver
     {
         //try loading mapping from original driver first
         $mapping = null;
-        if (!is_null($this->_originalDriver)) {
-            if ($this->_originalDriver instanceof FileDriver || $this->_originalDriver instanceof AbstractFileDriver) {
+        if (null !== $this->_originalDriver) {
+            if ($this->_originalDriver instanceof FileDriver) {
                 $mapping = $this->_originalDriver->getElement($className);
             }
         }
 
         //if no mapping found try to load mapping file again
-        if (is_null($mapping)) {
+        if (null === $mapping) {
             $yaml = $this->_loadMappingFile($this->locator->findMappingFile($className));
             $mapping = $yaml[$className];
         }
@@ -115,10 +124,10 @@ abstract class File implements Driver
     /**
      * Try to find out related class name out of mapping
      *
-     * @param $metadata - the mapped class metadata
-     * @param $name - the related object class name
+     * @param ClassMetadata $metadata the mapped class metadata
+     * @param string        $name     the related object class name
      *
-     * @return string - related class name or empty string if does not exist
+     * @return string related class name or empty string if does not exist
      */
     protected function getRelatedClassName($metadata, $name)
     {

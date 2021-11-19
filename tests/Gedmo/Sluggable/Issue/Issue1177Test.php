@@ -1,10 +1,11 @@
 <?php
 
-namespace Gedmo\Sluggable;
+namespace Gedmo\Tests\Sluggable;
 
 use Doctrine\Common\EventManager;
-use Sluggable\Fixture\Issue1177\Article;
-use Tool\BaseTestCaseORM;
+use Gedmo\Sluggable\SluggableListener;
+use Gedmo\Tests\Sluggable\Fixture\Issue1177\Article;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
 
 /**
  * These are tests for sluggable behavior
@@ -15,9 +16,9 @@ use Tool\BaseTestCaseORM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue1177Test extends BaseTestCaseORM
+final class Issue1177Test extends BaseTestCaseORM
 {
-    public const ARTICLE = 'Sluggable\\Fixture\\Issue1177\\Article';
+    public const ARTICLE = Article::class;
 
     protected function setUp(): void
     {
@@ -40,7 +41,7 @@ class Issue1177Test extends BaseTestCaseORM
         $this->em->persist($article);
         $this->em->flush();
         $this->em->clear();
-        $this->assertEquals('the-title-with-number-1', $article->getSlug());
+        static::assertSame('the-title-with-number-1', $article->getSlug());
 
         $article = new Article();
         $article->setTitle('the title with number');
@@ -50,7 +51,7 @@ class Issue1177Test extends BaseTestCaseORM
         $this->em->clear();
         // the slug was 'the-title-with-number-2' before the fix here
         // despite the fact that there is no entity with slug 'the-title-with-number'
-        $this->assertEquals('the-title-with-number', $article->getSlug());
+        static::assertSame('the-title-with-number', $article->getSlug());
 
         $article = new Article();
         $article->setTitle('the title with number');
@@ -58,7 +59,7 @@ class Issue1177Test extends BaseTestCaseORM
         $this->em->persist($article);
         $this->em->flush();
         $this->em->clear();
-        $this->assertEquals('the-title-with-number-2', $article->getSlug());
+        static::assertSame('the-title-with-number-2', $article->getSlug());
     }
 
     protected function getUsedEntityFixtures()

@@ -33,15 +33,13 @@ class SortableRepository extends EntityRepository
             foreach ($listeners as $hash => $listener) {
                 if ($listener instanceof SortableListener) {
                     $sortableListener = $listener;
-                    break;
+
+                    break 2;
                 }
-            }
-            if ($sortableListener) {
-                break;
             }
         }
 
-        if (is_null($sortableListener)) {
+        if (null === $sortableListener) {
             throw new \Gedmo\Exception\InvalidMappingException('This repository can be attached only to ORM sortable listener');
         }
 

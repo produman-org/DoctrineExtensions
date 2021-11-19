@@ -1,6 +1,6 @@
 <?php
 
-namespace Tree\Fixture;
+namespace Gedmo\Tests\Tree\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -10,8 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class UserLDAP extends User
 {
-    public function __construct($ldapUserName)
+    public function __construct(string $ldapUserName = 'next@something.com')
     {
-        parent::__construct('next@something.com', 'pass');
+        parent::__construct($ldapUserName, 'pass');
     }
 }

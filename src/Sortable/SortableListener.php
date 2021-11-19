@@ -6,9 +6,9 @@ use Doctrine\Common\Comparable;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\Persistence\Mapping\ClassMetadata;
-use Doctrine\Persistence\Proxy;
 use Gedmo\Mapping\MappedEventSubscriber;
 use Gedmo\Sortable\Mapping\Event\SortableAdapter;
+use ProxyManager\Proxy\GhostObjectInterface;
 
 /**
  * The SortableListener maintains a sort index on your entities
@@ -154,7 +154,7 @@ class SortableListener extends MappedEventSubscriber
         $old = $meta->getReflectionProperty($config['position'])->getValue($object);
         $newPosition = $meta->getReflectionProperty($config['position'])->getValue($object);
 
-        if (is_null($newPosition)) {
+        if (null === $newPosition) {
             $newPosition = -1;
         }
 
@@ -201,7 +201,7 @@ class SortableListener extends MappedEventSubscriber
         call_user_func_array([$this, 'addRelocation'], $relocation);
 
         // Set new position
-        if ($old < 0 || is_null($old)) {
+        if ($old < 0 || null === $old) {
             $this->setFieldValue($ea, $object, $config['position'], $old, $newPosition);
         }
     }
@@ -232,6 +232,9 @@ class SortableListener extends MappedEventSubscriber
                 $oldGroups[$group] = $changeSet[$group][0];
             }
         }
+
+        $oldPosition = 0;
+        $newPosition = 0;
 
         if ($changed) {
             $oldHash = $this->getHash($oldGroups, $config);
@@ -419,7 +422,7 @@ class SortableListener extends MappedEventSubscriber
                         continue;
                     }
                     foreach ($objects as $object) {
-                        if ($object instanceof Proxy && !$object->__isInitialized__) {
+                        if ($object instanceof GhostObjectInterface && !$object->isProxyInitialized()) {
                             continue;
                         }
 
@@ -438,7 +441,7 @@ class SortableListener extends MappedEventSubscriber
                             }
                         }
 
-                        $oid = spl_object_hash($object);
+                        $oid = spl_object_id($object);
                         $pos = $meta->getReflectionProperty($config['position'])->getValue($object);
                         $matches = $pos >= $delta['start'];
                         $matches = $matches && ($delta['stop'] <= 0 || $pos < $delta['stop']);
@@ -485,8 +488,8 @@ class SortableListener extends MappedEventSubscriber
             }
 
             // Clear relocations
-            unset($this->relocations[$hash]);
-            unset($this->maxPositions[$hash]); // unset only if relocations has been processed
+            // unset only if relocations has been processed
+            unset($this->relocations[$hash], $this->maxPositions[$hash]);
         }
     }
 
@@ -497,7 +500,7 @@ class SortableListener extends MappedEventSubscriber
             if ($val instanceof \DateTime) {
                 $val = $val->format('c');
             } elseif (is_object($val)) {
-                $val = spl_object_hash($val);
+                $val = spl_object_id($val);
             }
             $data .= $group.$val;
         }
@@ -512,7 +515,7 @@ class SortableListener extends MappedEventSubscriber
         $maxPos = null;
 
         // Get groups
-        if (!sizeof($groups)) {
+        if (!count($groups)) {
             $groups = $this->getGroups($meta, $config, $object);
         }
 
@@ -534,11 +537,11 @@ class SortableListener extends MappedEventSubscriber
         }
 
         $maxPos = $ea->getMaxPosition($config, $meta, $groups);
-        if (is_null($maxPos)) {
+        if (null === $maxPos) {
             $maxPos = -1;
         }
 
-        return intval($maxPos);
+        return (int) $maxPos;
     }
 
     /**
@@ -560,10 +563,11 @@ class SortableListener extends MappedEventSubscriber
 
         try {
             $newDelta = ['start' => $start, 'stop' => $stop, 'delta' => $delta, 'exclude' => $exclude];
-            array_walk($this->relocations[$hash]['deltas'], function (&$val, $idx, $needle) {
+            array_walk($this->relocations[$hash]['deltas'], static function (&$val, $idx, $needle) {
                 if ($val['start'] == $needle['start'] && $val['stop'] == $needle['stop']) {
                     $val['delta'] += $needle['delta'];
                     $val['exclude'] = array_merge($val['exclude'], $needle['exclude']);
+
                     throw new \Exception('Found delta. No need to add it again.');
                 // For every deletion relocation add newly created object to the list of excludes
                 // otherwise position update queries will run for created objects as well.

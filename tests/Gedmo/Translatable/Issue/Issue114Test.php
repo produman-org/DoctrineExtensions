@@ -1,11 +1,13 @@
 <?php
 
-namespace Gedmo\Translatable;
+namespace Gedmo\Tests\Translatable;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseORM;
-use Translatable\Fixture\Issue114\Article;
-use Translatable\Fixture\Issue114\Category;
+use Gedmo\Tests\Tool\BaseTestCaseORM;
+use Gedmo\Tests\Translatable\Fixture\Issue114\Article;
+use Gedmo\Tests\Translatable\Fixture\Issue114\Category;
+use Gedmo\Translatable\Entity\Translation;
+use Gedmo\Translatable\TranslatableListener;
 
 /**
  * These are tests for translatable behavior
@@ -16,11 +18,11 @@ use Translatable\Fixture\Issue114\Category;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class Issue114Test extends BaseTestCaseORM
+final class Issue114Test extends BaseTestCaseORM
 {
-    public const CATEGORY = 'Translatable\\Fixture\\Issue114\\Category';
-    public const ARTICLE = 'Translatable\\Fixture\\Issue114\\Article';
-    public const TRANSLATION = 'Gedmo\\Translatable\\Entity\\Translation';
+    public const CATEGORY = Category::class;
+    public const ARTICLE = Article::class;
+    public const TRANSLATION = Translation::class;
 
     private $translatableListener;
 
@@ -34,7 +36,7 @@ class Issue114Test extends BaseTestCaseORM
         $this->translatableListener->setDefaultLocale('en');
         $evm->addEventSubscriber($this->translatableListener);
 
-        $this->getMockSqliteEntityManager($evm);
+        $this->getDefaultMockSqliteEntityManager($evm);
     }
 
     public function testIssue114()
@@ -99,13 +101,13 @@ class Issue114Test extends BaseTestCaseORM
         $this->em->flush();
 
         $trans = $repo->findTranslations($article2);
-        $this->assertEquals(1, count($trans));
+        static::assertCount(1, $trans);
 
         $trans = $repo->findTranslations($article3);
-        $this->assertEquals(1, count($trans));
+        static::assertCount(1, $trans);
 
         $trans = $repo->findTranslations($article1);
-        $this->assertEquals(1, count($trans));
+        static::assertCount(1, $trans);
     }
 
     protected function getUsedEntityFixtures()

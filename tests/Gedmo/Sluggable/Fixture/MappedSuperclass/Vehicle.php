@@ -1,6 +1,6 @@
 <?php
 
-namespace Sluggable\Fixture\MappedSuperclass;
+namespace Gedmo\Tests\Sluggable\Fixture\MappedSuperclass;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -10,6 +10,11 @@ use Gedmo\Mapping\Annotation as Gedmo;
  */
 class Vehicle
 {
+    /**
+     * @var int|null
+     */
+    private $id;
+
     /**
      * @ORM\Column(length=128)
      */

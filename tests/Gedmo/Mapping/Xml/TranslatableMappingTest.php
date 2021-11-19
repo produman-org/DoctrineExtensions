@@ -1,14 +1,17 @@
 <?php
 
-namespace Gedmo\Mapping\Xml;
+namespace Gedmo\Tests\Mapping\Xml;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\DriverChain;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Gedmo\Tests\Mapping\Fixture\Xml\Translatable;
+use Gedmo\Tests\Mapping\Fixture\Xml\TranslatableWithEmbedded;
+use Gedmo\Tests\Tool\BaseTestCaseOM;
+use Gedmo\Translatable\Entity\Translation;
 use Gedmo\Translatable\TranslatableListener;
-use Tool\BaseTestCaseOM;
 
 /**
  * These are mapping extension tests
@@ -19,7 +22,7 @@ use Tool\BaseTestCaseOM;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class TranslatableMappingTest extends BaseTestCaseOM
+final class TranslatableMappingTest extends BaseTestCaseOM
 {
     /**
      * @var Doctrine\ORM\EntityManager
@@ -31,7 +34,7 @@ class TranslatableMappingTest extends BaseTestCaseOM
      */
     private $translatable;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -42,43 +45,43 @@ class TranslatableMappingTest extends BaseTestCaseOM
 
         $chain = new DriverChain();
         $chain->addDriver($annotationDriver, 'Gedmo\Translatable');
-        $chain->addDriver($xmlDriver, 'Mapping\Fixture\Xml');
+        $chain->addDriver($xmlDriver, 'Gedmo\Tests\Mapping\Fixture\Xml');
 
         $this->translatable = new TranslatableListener();
         $this->evm = new EventManager();
         $this->evm->addEventSubscriber($this->translatable);
 
         $this->em = $this->getMockSqliteEntityManager([
-            'Gedmo\Translatable\Entity\Translation',
-            'Mapping\Fixture\Xml\Translatable',
+            Translation::class,
+            Translatable::class,
         ], $chain);
     }
 
     public function testTranslatableMetadata()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\Translatable');
+        $meta = $this->em->getClassMetadata(Translatable::class);
         $config = $this->translatable->getConfiguration($this->em, $meta->name);
 
-        $this->assertArrayHasKey('translationClass', $config);
-        $this->assertEquals('Gedmo\Translatable\Entity\Translation', $config['translationClass']);
-        $this->assertArrayHasKey('locale', $config);
-        $this->assertEquals('locale', $config['locale']);
+        static::assertArrayHasKey('translationClass', $config);
+        static::assertSame(Translation::class, $config['translationClass']);
+        static::assertArrayHasKey('locale', $config);
+        static::assertSame('locale', $config['locale']);
 
-        $this->assertArrayHasKey('fields', $config);
-        $this->assertCount(4, $config['fields']);
-        $this->assertTrue(in_array('title', $config['fields']));
-        $this->assertTrue(in_array('content', $config['fields']));
-        $this->assertTrue(in_array('author', $config['fields']));
-        $this->assertTrue(in_array('views', $config['fields']));
-        $this->assertTrue($config['fallback']['author']);
-        $this->assertFalse($config['fallback']['views']);
+        static::assertArrayHasKey('fields', $config);
+        static::assertCount(4, $config['fields']);
+        static::assertContains('title', $config['fields']);
+        static::assertContains('content', $config['fields']);
+        static::assertContains('author', $config['fields']);
+        static::assertContains('views', $config['fields']);
+        static::assertTrue($config['fallback']['author']);
+        static::assertFalse($config['fallback']['views']);
     }
 
     public function testTranslatableMetadataWithEmbedded()
     {
-        $meta = $this->em->getClassMetadata('Mapping\Fixture\Xml\TranslatableWithEmbedded');
+        $meta = $this->em->getClassMetadata(TranslatableWithEmbedded::class);
         $config = $this->translatable->getConfiguration($this->em, $meta->name);
 
-        $this->assertContains('embedded.subtitle', $config['fields']);
+        static::assertContains('embedded.subtitle', $config['fields']);
     }
 }

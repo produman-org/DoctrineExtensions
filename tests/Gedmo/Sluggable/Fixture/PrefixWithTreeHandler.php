@@ -4,7 +4,7 @@
  * 2013
  */
 
-namespace Sluggable\Fixture;
+namespace Gedmo\Tests\Sluggable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
@@ -100,7 +100,7 @@ class PrefixWithTreeHandler implements Sluggable
     /**
      * @return $this;
      */
-    public function setParent(PrefixWithTreeHandler $parent)
+    public function setParent(self $parent)
     {
         $this->parent = $parent;
 

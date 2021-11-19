@@ -1,10 +1,12 @@
 <?php
 
-namespace Gedmo\Tree;
+namespace Gedmo\Tests\Tree;
 
 use Doctrine\Common\EventManager;
-use Tool\BaseTestCaseMongoODM;
-use Tree\Fixture\Mock\TreeListenerMock;
+use Gedmo\Exception\TreeLockingException;
+use Gedmo\Tests\Tool\BaseTestCaseMongoODM;
+use Gedmo\Tests\Tree\Fixture\Document\Article;
+use Gedmo\Tests\Tree\Fixture\Mock\TreeListenerMock;
 
 /**
  * These are tests for Tree behavior
@@ -16,9 +18,9 @@ use Tree\Fixture\Mock\TreeListenerMock;
  *
  * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-class MaterializedPathODMMongoDBTreeLockingTest extends BaseTestCaseMongoODM
+final class MaterializedPathODMMongoDBTreeLockingTest extends BaseTestCaseMongoODM
 {
-    public const ARTICLE = 'Tree\\Fixture\\Document\\Article';
+    public const ARTICLE = Article::class;
 
     protected $config;
     protected $listener;
@@ -45,7 +47,7 @@ class MaterializedPathODMMongoDBTreeLockingTest extends BaseTestCaseMongoODM
     {
         // By default, TreeListenerMock disables the release of the locks
         // for testing purposes
-        $this->expectException('Gedmo\Exception\TreeLockingException');
+        $this->expectException(TreeLockingException::class);
 
         $article = $this->createArticle();
         $article->setTitle('1');
@@ -69,7 +71,7 @@ class MaterializedPathODMMongoDBTreeLockingTest extends BaseTestCaseMongoODM
      */
     public function modifyingANodeWhileItsTreeIsNotLockedShouldNotThrowException()
     {
-        $this->markTestSkipped('the locking test is failing after removal of scheduleExtraUpdate');
+        static::markTestSkipped('the locking test is failing after removal of scheduleExtraUpdate');
         $article = $this->createArticle();
         $article->setTitle('1');
         $article2 = $this->createArticle();
@@ -96,7 +98,7 @@ class MaterializedPathODMMongoDBTreeLockingTest extends BaseTestCaseMongoODM
         $this->dm->flush();
 
         // But this should throw it, because the root of its tree ($article) is still locked
-        $this->expectException('Gedmo\Exception\TreeLockingException');
+        $this->expectException(TreeLockingException::class);
 
         $repo = $this->dm->getRepository(self::ARTICLE);
         $article2 = $repo->findOneBy(['title' => '2']);
